@@ -1,5 +1,9 @@
 # src/test
 
-Reserved for the test runner wired up in Phase 04 (Vitest, per PLAN-MAESTRO section 13).
+Pruebas unitarias del motor con Vitest. No usan el navegador ni la red.
 
-Do not add fixtures or helpers here until Phase 04 lands.
+```bash
+npm test
+```
+
+Los casos cubren los invariantes de `PLAN-MAESTRO.md`, sección 9, sobre el fixture `MINIMAL_SCENARIO`. No afirman puntajes de las historias oficiales.

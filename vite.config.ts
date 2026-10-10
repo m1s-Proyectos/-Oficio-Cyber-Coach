@@ -1,7 +1,6 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
-// Minimal Vite config for Phase 01. Future phases may add aliases, env vars, or test runners.
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -11,5 +10,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+  },
+  test: {
+    environment: 'node',
+    include: ['src/test/**/*.test.ts'],
   },
 });

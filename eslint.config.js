@@ -61,6 +61,14 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/test/**/*.ts', 'src/engine/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
     files: ['vite.config.ts', 'eslint.config.js'],
     languageOptions: {
       ecmaVersion: 2022,

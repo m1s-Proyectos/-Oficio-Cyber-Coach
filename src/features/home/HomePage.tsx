@@ -104,10 +104,14 @@ export function HomePage() {
         <section aria-labelledby="status-title">
           <Alert tone="info" title="Estado real del prototipo">
             <p>
-              El catálogo de esta portada ya se sirve desde Convex. El motor de simulación llega en
-              la Fase 04, los guiones completos en las Fases 05 y 06, y la puntuación oficial en la
-              Fase 07. Hasta entonces, el reproductor muestra contenido etiquetado como vista previa
-              de diseño.
+              El catálogo de esta portada se sirve desde Convex. El motor de la Fase 04 ya evalúa un
+              fixture de prueba en memoria. Los guiones oficiales llegan en las Fases 05 y 06, y el
+              puntaje oficial en la Fase 07.
+            </p>
+            <p>
+              <Button as="link" to="simulation" params={{ slug: 'fixture-motor' }} variant="ghost">
+                Probar el fixture del motor
+              </Button>
             </p>
           </Alert>
         </section>

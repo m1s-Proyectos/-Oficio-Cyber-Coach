@@ -5,6 +5,8 @@ import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import { StatusMessage } from '../../components/StatusMessage';
 import { useCurrentRoute } from '../../app/router';
+import { FIXTURE_SLUG, MINIMAL_SCENARIO } from '../../engine';
+import { EngineSession } from './EngineSession';
 import { getScenarioPreview, type ScenarioPreview } from './scenarioPreview';
 
 export function SimulationPage() {
@@ -13,6 +15,10 @@ export function SimulationPage() {
 
   if (!slug) {
     return <MissingSlugState />;
+  }
+
+  if (slug === FIXTURE_SLUG) {
+    return <EngineSession definition={MINIMAL_SCENARIO} />;
   }
 
   const preview = getScenarioPreview(slug);
@@ -51,9 +57,9 @@ function ScenarioPreviewView({ preview, slug }: { preview: ScenarioPreview; slug
         </header>
 
         <Alert tone="warning" title="Vista previa de diseño">
-          Esta pantalla aún no evalúa decisiones ni guarda tu progreso. El motor que lo hace llega
-          en la Fase 04 y las historias completas en las Fases 05 y 06. Las opciones de abajo son
-          una maqueta visual con texto ficticio.
+          Esta pantalla aún no evalúa las historias oficiales ni guarda tu progreso. El motor ya
+          existe en la Fase 04, pero los guiones de WhatsApp y de la tienda se aprueban en las Fases
+          05 y 06. Las opciones de abajo siguen siendo una maqueta visual.
         </Alert>
 
         <section aria-labelledby="message-heading" className="stack" data-gap="sm">
@@ -139,7 +145,7 @@ function UnknownSlugState({ slug }: { slug: string }) {
       <StatusMessage
         kind="error"
         title={`No encontramos el escenario "${slug}"`}
-        description="Los escenarios disponibles en el prototipo son el mensaje por WhatsApp y la tienda del iPhone."
+        description="Los escenarios del catálogo son el mensaje por WhatsApp y la tienda del iPhone. El fixture del motor usa el identificador fixture-motor."
         action={
           <Button as="link" to="home" variant="secondary">
             Volver al catálogo

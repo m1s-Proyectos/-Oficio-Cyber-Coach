@@ -718,6 +718,17 @@
   color: inherit;
 }
 
+button.decision-option {
+  width: 100%;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.decision-option:hover,
+button.decision-option:focus-visible {
+  border-color: var(--color-primary);
+}
+
 .decision-option__key {
   font-family: var(--font-mono);
   background: var(--color-primary-soft);
