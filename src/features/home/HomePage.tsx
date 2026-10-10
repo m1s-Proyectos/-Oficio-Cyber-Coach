@@ -1,0 +1,117 @@
+import { Alert } from '../../components/Alert';
+import { Badge } from '../../components/Badge';
+import { Button } from '../../components/Button';
+import { Container } from '../../components/Container';
+import { SectionHeading } from '../../components/SectionHeading';
+import { PublishedCatalog } from './PublishedCatalog';
+
+const PRINCIPLES = [
+  {
+    number: '01',
+    title: 'Observa la situación',
+    body: 'Antes de reaccionar, lee las señales del mensaje, la oferta o la petición. La urgencia no es una prueba.',
+  },
+  {
+    number: '02',
+    title: 'Elige una decisión',
+    body: 'Comparas rutas posibles: enviar, confiar, verificar o detenerte. Cada camino tiene consecuencias.',
+  },
+  {
+    number: '03',
+    title: 'Verifica por otro canal',
+    body: 'Un segundo canal independiente del original rompe la trampa. Llama, pregunta, contrasta.',
+  },
+  {
+    number: '04',
+    title: 'Aprende y vuelve a intentar',
+    body: 'Si algo ya salió mal en la ficción, aún puedes detener el daño y practicar el siguiente paso.',
+  },
+] as const;
+
+export function HomePage() {
+  return (
+    <>
+      <Container size="wide">
+        <section className="hero" aria-labelledby="hero-title">
+          <p className="hero__eyebrow">
+            <Badge tone="beacon">Prototipo Fase 03</Badge>
+            Antes de enviar dinero, aprende a verificar
+          </p>
+          <h1 id="hero-title" className="hero__title">
+            Entrena decisiones seguras ante fraudes digitales.
+          </h1>
+          <p className="hero__lead">
+            OFICIO Cyber Coach presenta escenarios ficticios interactivos para que practiques cómo
+            reconocer presiones, pedir una segunda señal y detenerte a tiempo. No es una guía legal
+            ni una promesa de recuperación: es un espacio de aprendizaje.
+          </p>
+          <div className="hero__actions">
+            <Button as="link" to="simulation" params={{ slug: 'whatsapp-familiar' }} size="lg">
+              Comenzar la simulación A
+            </Button>
+            <Button
+              as="link"
+              to="simulation"
+              params={{ slug: 'tienda-iphone' }}
+              variant="secondary"
+              size="lg"
+            >
+              Explorar la simulación B
+            </Button>
+          </div>
+          <div className="hero__disclaimer">
+            <Alert tone="warning" title="Historias ficticias con fines educativos">
+              Los personajes, importes, plazos y conversaciones son parte del ejercicio. No
+              describen un caso real ni predicen cómo ocurrirán todos los fraudes.
+            </Alert>
+          </div>
+        </section>
+      </Container>
+
+      <Container size="wide">
+        <section className="stack" aria-labelledby="catalog-title" data-gap="lg">
+          <SectionHeading
+            id="catalog-title"
+            eyebrow="Catálogo"
+            title="Dos simulaciones, un mismo motor"
+            subtitle="Las dos historias comparten ciclo educativo: observar, decidir, verificar y recuperar. El catálogo se carga desde el servidor; el reproductor y la evaluación llegan en fases posteriores."
+          />
+          <PublishedCatalog />
+        </section>
+      </Container>
+
+      <Container size="wide">
+        <section className="stack" aria-labelledby="principles-title" data-gap="lg">
+          <SectionHeading
+            id="principles-title"
+            eyebrow="Cómo aprendes"
+            title="Cuatro pasos repetidos en cada escenario"
+            subtitle="Los principios son los mismos aunque cambie la historia: una presión aparece, tomas una decisión, verificas por otro canal y, si es necesario, retomas el control."
+          />
+          <div className="grid" data-cols="4">
+            {PRINCIPLES.map((principle) => (
+              <article key={principle.number} className="principle">
+                <span className="principle__number">{principle.number}</span>
+                <h3 className="principle__title">{principle.title}</h3>
+                <p className="principle__body">{principle.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </Container>
+
+      <Container size="wide">
+        <section aria-labelledby="status-title">
+          <Alert tone="info" title="Estado real del prototipo">
+            <p>
+              El catálogo de esta portada ya se sirve desde Convex. El motor de simulación llega en
+              la Fase 04, los guiones completos en las Fases 05 y 06, y la puntuación oficial en la
+              Fase 07. Hasta entonces, el reproductor muestra contenido etiquetado como vista previa
+              de diseño.
+            </p>
+          </Alert>
+        </section>
+      </Container>
+    </>
+  );
+}

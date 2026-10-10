@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+dist-ssr/
+build/
+*.local
+
+# Tool caches
+.vite/
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# Environment (never commit)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.recommended.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Convex local state. convex/_generated/ IS committed (required for typecheck and build).
+.convex/

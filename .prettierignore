@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+.vite
+.cache
+*.tsbuildinfo
+coverage
+convex/_generated
+
+# Technical direction documents: do not reformat automatically.
+PLAN-MAESTRO.md
+docs/
