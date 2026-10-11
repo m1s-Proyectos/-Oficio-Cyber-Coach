@@ -58,7 +58,6 @@ export function HomePage() {
             id="catalog-title"
             eyebrow="Catálogo"
             title="Cinco simulaciones, un mismo motor"
-            subtitle="A y B salen del catálogo remoto. Empleo, código y supuesto jefe se recorren en el cliente (reto-2, reto-7 y reto-4 de NoCaigas). Sin puntaje oficial (D3 pendiente)."
           />
           <PublishedCatalog />
         </section>
