@@ -45,3 +45,11 @@ export function sanitizeCast(input: ScenarioCast): ScenarioCast {
     relationship: sanitizeCastField(input.relationship, DEFAULT_CAST.relationship),
   };
 }
+
+/** No avanza el inicio si falta algún nombre. No usa los predeterminados. */
+export function isCastReady(input: ScenarioCast): boolean {
+  return [input.learner, input.relativeName, input.relationship].every((value) => {
+    const trimmed = value.trim();
+    return trimmed.length > 0 && trimmed.length <= 40;
+  });
+}

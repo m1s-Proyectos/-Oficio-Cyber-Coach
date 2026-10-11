@@ -108,3 +108,42 @@ Formato por entrada:
 - **Contexto.** El propietario estableció que todas las simulaciones, actuales y futuras, deben poder ser experiencias inmersivas y personalizadas en un entorno digital ficticio, no un cuestionario de botones. La arquitectura debe ser común.
 - **Decisión registrada.** Se documenta el principio en este archivo y en `PLAN-MAESTRO.md`, sección 2. Un motor determinista, un teléfono simulado, superficies reutilizables, definiciones de escenario y variables narrativas. La personalización no altera ids, destinos ni puntajes. Las acciones son `optionId` del guion. Entornos ficticios, sin servicios reales.
 - **Consecuencias.** Esto **no** aprueba D1, D2, D3, D4, D5, D6, D7, D8 ni D9. **No** autoriza implementar el teléfono, `src/content` de A o B, ni cambiar Convex. El guion A se redacta como borrador aparte (`docs/guion-simulacion-a.md`) y espera D4.
+
+---
+
+## 2026-10-10 — Fase 09.7.1: interruptor y cuotas persistidas de voz
+
+- **Contexto.** `voice:synthesizeAdvice` es una action pública sin identidad. El catálogo cerrado no limita gasto. `@convex-dev/ratelimiter` no está instalado y exige `convex.config.ts` más codegen con `npx convex dev`, fuera de este alcance local.
+- **Decisión.** Interruptor `VOICE_ENABLED` (solo `true` habilita; cerrado por defecto). Cuota global en tabla `voiceQuota` (singleton) con mutaciones internas transaccionales: 10 síntesis reales/hora, 30/día, 2 leases concurrentes con caducidad `TTS_TIMEOUT_MS + 5s`. Se cuenta el cache miss que entra a la factory del proveedor. El cliente no cambia límites.
+- **Consecuencias.** Las ventanas fijas permiten ráfaga al resetear. No es un tope económico. El perímetro real en Convex requiere desplegar esquema y mutaciones (no hecho aquí). Un isolate puede perder un `release` si la action muere; el lease caduca. Sin identidad, la cuota es global al deployment, no por usuario. D2 sigue abierta.
+
+---
+
+## 2026-10-10 — Fase 09.7.3: inicialización del singleton y cuota obligatoria
+
+- **Contexto.** La auditoría 09.7.2 señaló que un índice `by_singleton` no es una restricción UNIQUE y que `synthesizeAdviceAudio` podía crear un `MemoryVoiceQuotaStore` si faltaba `quota`.
+- **Decisión.** `reserve` lee `take(2)` del intervalo `by_singleton == global`. Cero filas: inserta en la misma mutación. Una fila: reserva sobre ella. Dos o más: `RATE_LIMITED` sin incrementar. `release` no inserta. OCC de Convex trata ese intervalo de índice como clave de conflicto (docs + jamwt: invalidación por solape de rango). La action inyecta siempre el almacén Convex; sin `quota` no hay `fetch` ni almacén en memoria.
+- **Consecuencias.** Los tests de ledger modelan la política, no demuestran OCC remoto. Sigue haciendo falta validar `take(2)` e inserts concurrentes en Convex de desarrollo, con voz apagada. Los tipos de `api.d.ts` se dejaron alineados a mano; el codegen oficial espera una fase autorizada.
+
+---
+
+## 2026-10-10 — Fases 09.7.4–09.7.8: validación en desarrollo y dictamen
+
+- **Contexto.** Tras 09.7.3, el perímetro de voz debía comprobarse en Convex de desarrollo sin encender ElevenLabs.
+- **Resultado.** En `blissful-kookabura-305` (no en producción `intent-ocelot-649`): esquema `voiceQuota` publicado; `synthesizeAdvice` pública; `reserve`/`release` internas. Con cero variables remotas, un id de catálogo devolvió `DISABLED` y un id inválido `UNKNOWN_ADVICE`, sin filas de cuota ni `fetch` al proveedor. Dos `reserve` concurrentes con capacidad libre tuvieron éxito sobre un solo singleton; los `leaseId` quedaron serializados (`…-2-0` y `…-3-1`). La liberación fue idempotente. Contadores al cierre de 09.7.7: hora/día 4/4, leases vacíos. Pruebas locales 123/123. Dictamen 09.7.8: preparado para **proponer** TTS de prueba, no para activarlo.
+- **Pendiente.** Último cupo horario remoto, inicialización concurrente con tabla vacía, trazas OCC del dashboard. La action pública no tiene identidad; la cuota es global.
+
+---
+
+## 2026-10-10 — Procedimiento reversible de TTS de prueba (no ejecutado)
+
+- **Contexto.** Hace falta un recetario mínimo para una fase futura autorizada. Esta entrada **no** habilita la voz ni configura claves.
+- **Procedimiento (solo desarrollo `blissful-kookabura-305`).**
+  1. Confirmar destino y que `VOICE_ENABLED` no es `true`.
+  2. Configurar en Convex (nunca `VITE_*`) clave, voz y modelo de ElevenLabs, y `VOICE_ENABLED=true`, el tiempo mínimo.
+  3. Invocar `voice:synthesizeAdvice` una vez con `codigo-verificacion:otp-request`. Opcional: una segunda id, `whatsapp-familiar:urgency`.
+  4. Repetir el mismo `adviceId` y comprobar `cacheHit: true` sin nuevo gasto de cuota de síntesis real.
+  5. Leer `voiceQuota`: un documento, `hourCount`/`dayCount` incrementados solo por cache miss, leases vacíos tras el `release`.
+  6. Quitar de inmediato `VOICE_ENABLED`. Valorar quitar también las claves del proveedor.
+  7. No tocar producción. No commitear secretos. No dejar `VOICE_ENABLED=true`.
+- **Consecuencias.** El gasto lo factura el proveedor. La cuota global no autoriza por usuario. Revertir es quitar las variables del deployment de desarrollo.

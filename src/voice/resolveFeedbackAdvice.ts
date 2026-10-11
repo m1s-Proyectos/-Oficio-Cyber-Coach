@@ -1,21 +1,17 @@
-import type { Feedback } from '../engine';
-import { VOICE_ADVICE_CATALOG, VOICE_ADVICE_IDS, type VoiceAdviceId } from './adviceCatalog';
+import { isVoiceAdviceId, type VoiceAdviceId } from './adviceCatalog';
+import { OPTION_VOICE_MAP, optionVoiceKey } from './optionVoiceMap';
 
 /**
- * Solo empareja si el texto del recuadro coincide exactamente con un consejo
- * del catálogo de ese slug. Si no hay una coincidencia única, no hay audio.
+ * Resuelve el consejo de voz por slug + option.id.
+ * Claves desconocidas o valores no autorizados → null (sin síntesis).
  */
 export function resolveFeedbackAdviceId(
   scenarioSlug: string,
-  feedback: Feedback,
+  optionId: string,
 ): VoiceAdviceId | null {
-  const prefix = `${scenarioSlug}:`;
-  const matches = VOICE_ADVICE_IDS.filter((id) => {
-    if (!id.startsWith(prefix)) {
-      return false;
-    }
-    const text = VOICE_ADVICE_CATALOG[id];
-    return text === feedback.recommendation || text === feedback.explanation;
-  });
-  return matches.length === 1 ? (matches[0] ?? null) : null;
+  const mapped = OPTION_VOICE_MAP[optionVoiceKey(scenarioSlug, optionId)];
+  if (mapped === undefined || mapped === null) {
+    return null;
+  }
+  return isVoiceAdviceId(mapped) ? mapped : null;
 }

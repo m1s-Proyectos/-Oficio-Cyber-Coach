@@ -1,4 +1,10 @@
-export { applyCast, DEFAULT_CAST, sanitizeCast, type ScenarioCast } from './bindCast';
+export {
+  applyCast,
+  DEFAULT_CAST,
+  isCastReady,
+  sanitizeCast,
+  type ScenarioCast,
+} from './bindCast';
 export { applyShopCast, DEFAULT_SHOP_CAST, sanitizeShopCast, type ShopCast } from './tiendaCast';
 export {
   UNOFFICIAL_ZERO_POINTS,

@@ -6,6 +6,8 @@ import {
   type ProviderFailure,
   type VoiceProviderConfig,
 } from './elevenLabsTts';
+import { isVoiceEnabled } from './voiceLimits';
+import type { VoiceQuotaStore } from './voiceQuotaStore';
 
 export type SynthesizeAdviceOk = {
   ok: true;
@@ -17,7 +19,7 @@ export type SynthesizeAdviceOk = {
 
 export type SynthesizeAdviceErr = {
   ok: false;
-  code: 'UNKNOWN_ADVICE' | 'TEXT_TOO_LONG' | ProviderFailure['code'];
+  code: 'UNKNOWN_ADVICE' | 'TEXT_TOO_LONG' | 'DISABLED' | 'RATE_LIMITED' | ProviderFailure['code'];
   message: string;
 };
 
@@ -27,6 +29,9 @@ export type SynthesizeAdviceDeps = {
   env: Record<string, string | undefined>;
   fetchImpl: typeof fetch;
   cache?: ProcessAudioCache;
+  /** Obligatorio antes de hablar con el proveedor. Los tests lo inyectan. */
+  quota?: VoiceQuotaStore | null;
+  now?: number;
   timeoutMs?: number;
 };
 
@@ -52,12 +57,30 @@ export async function synthesizeAdviceAudio(
     return { ok: false, code: 'TEXT_TOO_LONG', message: 'El consejo supera el límite de texto.' };
   }
 
+  if (!isVoiceEnabled(deps.env)) {
+    return {
+      ok: false,
+      code: 'DISABLED',
+      message: 'La voz está desactivada. El texto sigue disponible.',
+    };
+  }
+
   const config = readVoiceProviderConfig(deps.env);
   if ('error' in config) {
     return { ok: false, code: config.error.code, message: config.error.message };
   }
 
+  if (deps.quota == null) {
+    return {
+      ok: false,
+      code: 'RATE_LIMITED',
+      message: 'No se pudo reservar cuota de voz. El texto sigue disponible.',
+    };
+  }
+
   const cache = deps.cache ?? processAudioCache;
+  const quota = deps.quota;
+  const now = deps.now ?? Date.now();
   const key = buildAudioCacheKey({
     adviceId,
     textFingerprint: fingerprintText(text),
@@ -67,11 +90,19 @@ export async function synthesizeAdviceAudio(
 
   try {
     const { audio, cacheHit } = await cache.getOrCreate(key, async () => {
-      const generated = await requestElevenLabsMpeg(config, text, deps.fetchImpl, deps.timeoutMs);
-      if ('error' in generated) {
-        throw generated.error;
+      const reserved = await quota.reserve(now);
+      if (!reserved.ok) {
+        throw reserved;
       }
-      return generated.audio;
+      try {
+        const generated = await requestElevenLabsMpeg(config, text, deps.fetchImpl, deps.timeoutMs);
+        if ('error' in generated) {
+          throw generated.error;
+        }
+        return generated.audio;
+      } finally {
+        await quota.release(reserved.leaseId, deps.now ?? Date.now());
+      }
     });
 
     return {
@@ -82,26 +113,29 @@ export async function synthesizeAdviceAudio(
       cacheHit,
     };
   } catch (error) {
-    if (isProviderFailure(error)) {
+    if (isTypedFailure(error)) {
       return { ok: false, code: error.code, message: error.message };
     }
     return { ok: false, code: 'PROVIDER_ERROR', message: 'No se pudo generar el audio.' };
   }
 }
 
-function isProviderFailure(value: unknown): value is ProviderFailure {
+function isTypedFailure(
+  value: unknown,
+): value is ProviderFailure | { code: 'RATE_LIMITED'; message: string } {
   return (
     typeof value === 'object' &&
     value !== null &&
     'code' in value &&
     'message' in value &&
-    typeof (value as ProviderFailure).code === 'string' &&
-    typeof (value as ProviderFailure).message === 'string'
+    typeof (value as { code: unknown }).code === 'string' &&
+    typeof (value as { message: unknown }).message === 'string'
   );
 }
 
 export function voiceConfigFromProcessEnv(): Record<string, string | undefined> {
   return {
+    VOICE_ENABLED: process.env.VOICE_ENABLED,
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
     ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID,
     ELEVENLABS_MODEL_ID: process.env.ELEVENLABS_MODEL_ID,

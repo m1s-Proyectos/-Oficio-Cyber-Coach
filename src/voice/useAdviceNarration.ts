@@ -7,6 +7,8 @@ import type { SynthesizeAdviceResult } from './synthesizeAdvice';
 
 export function useAdviceNarration(adviceId: VoiceAdviceId | null): NarrationSnapshot & {
   setMuted: (muted: boolean) => void;
+  play: () => void;
+  pause: () => void;
   replay: () => void;
 } {
   const synthesize = useAction(api.voice.synthesizeAdvice);
@@ -67,6 +69,12 @@ export function useAdviceNarration(adviceId: VoiceAdviceId | null): NarrationSna
     ...controller.snapshot(),
     setMuted: (muted: boolean) => {
       controller.setMuted(muted);
+    },
+    play: () => {
+      controller.play();
+    },
+    pause: () => {
+      controller.pause();
     },
     replay: () => {
       controller.replay();

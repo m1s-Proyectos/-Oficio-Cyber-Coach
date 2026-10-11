@@ -1,31 +1,45 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from '../../components/Alert';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import {
   applyCast,
-  DEFAULT_CAST,
+  isCastReady,
   sanitizeCast,
   WHATSAPP_FAMILIAR_PRESENTATION,
   WHATSAPP_FAMILIAR_SCENARIO,
   type ScenarioCast,
 } from '../../content';
 import { getCurrent, type Feedback, type SessionState } from '../../engine';
-import { AdviceVoiceBar } from './AdviceVoiceBar';
+import { EducationalAdvice } from './EducationalAdvice';
+import { ChatThread } from './phone/ChatThread';
 import { PhoneShell } from './phone/PhoneShell';
 import {
   createWhatsAppSessionController,
   noticeForChoiceFailure,
   startWhatsAppSession,
 } from './sessionChoice';
+import {
+  briefOutgoingReply,
+  canChooseAtPhase,
+  contactInitials,
+  EMPTY_CAST_DRAFT,
+  FIRST_INCOMING_DELAY_MS,
+  FOLLOWUP_WAIT_MS,
+  incomingSenderLabel,
+  NOTIFY_INCOMING_BODY,
+  scheduleProgressiveMessage,
+  TYPING_DELAY_MS,
+  type ChatLine,
+  type ChatRevealPhase,
+} from './whatsappStart';
 
 function threadSubtitle(thread: string, cast: ScenarioCast): string {
   switch (thread) {
     case 'lock':
-      return 'Pantalla de aviso';
     case 'suspect':
-      return cast.relativeName;
+      return `${cast.relativeName} · ${cast.relationship}`;
     case 'call':
       return `Número habitual de ${cast.relativeName}`;
     case 'other':
@@ -45,20 +59,109 @@ function threadSubtitle(thread: string, cast: ScenarioCast): string {
 
 export function WhatsAppFamiliarSession() {
   const controllerRef = useRef(createWhatsAppSessionController());
-  const [draft, setDraft] = useState<ScenarioCast>(DEFAULT_CAST);
-  const [cast, setCast] = useState<ScenarioCast>(DEFAULT_CAST);
-  const [state, setState] = useState<SessionState>(() => startWhatsAppSession());
+  const [draft, setDraft] = useState<ScenarioCast>(EMPTY_CAST_DRAFT);
+  const [cast, setCast] = useState<ScenarioCast>(EMPTY_CAST_DRAFT);
+  const [started, setStarted] = useState(false);
+  const [state, setState] = useState<SessionState | null>(null);
+  const [revealPhase, setRevealPhase] = useState<ChatRevealPhase>('wait');
+  const [lines, setLines] = useState<ChatLine[]>([]);
+  const revealedNodeRef = useRef<string | null>(null);
+  const inflightNodeRef = useRef<string | null>(null);
+  const lineSeqRef = useRef(0);
   const [lastFeedback, setLastFeedback] = useState<Feedback | null>(null);
+  const [lastOptionId, setLastOptionId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
 
-  const view = useMemo(() => getCurrent(state, WHATSAPP_FAMILIAR_SCENARIO), [state]);
-  const current = view.ok ? view.value : null;
+  const view = useMemo(
+    () => (state ? getCurrent(state, WHATSAPP_FAMILIAR_SCENARIO) : null),
+    [state],
+  );
+  const current = view?.ok ? view.value : null;
   const presentation = current ? WHATSAPP_FAMILIAR_PRESENTATION[current.node.id] : undefined;
+  const atNotify = current?.node.id === 'n_notify';
+  const isSuspectChat = presentation?.surface === 'messenger' && presentation.thread === 'suspect';
+  const showChatThread = Boolean(atNotify || isSuspectChat);
 
   const bind = (text: string) => applyCast(text, cast);
 
+  const pushLine = (tone: ChatLine['tone'], body: string, time: string) => {
+    lineSeqRef.current += 1;
+    const id = `${tone}-${lineSeqRef.current}`;
+    setLines((prev) => [...prev, { id, tone, body, time }]);
+  };
+
+  useEffect(() => {
+    if (!started || !current || !presentation) {
+      return undefined;
+    }
+    const nodeId = current.node.id;
+    if (revealedNodeRef.current === nodeId) {
+      return undefined;
+    }
+
+    const situation = bind(current.node.situation);
+    const time = presentation.time;
+
+    if (atNotify || isSuspectChat) {
+      inflightNodeRef.current = nodeId;
+      setRevealPhase('wait');
+      const cancel = scheduleProgressiveMessage({
+        waitMs: atNotify ? FIRST_INCOMING_DELAY_MS : FOLLOWUP_WAIT_MS,
+        typingMs: TYPING_DELAY_MS,
+        onTyping: () => {
+          if (inflightNodeRef.current === nodeId) {
+            setRevealPhase('typing');
+          }
+        },
+        onVisible: () => {
+          if (inflightNodeRef.current !== nodeId) {
+            return;
+          }
+          revealedNodeRef.current = nodeId;
+          inflightNodeRef.current = null;
+          pushLine('incoming', atNotify ? NOTIFY_INCOMING_BODY : situation, time);
+          setRevealPhase('visible');
+        },
+      });
+      return () => {
+        cancel();
+        if (revealedNodeRef.current !== nodeId) {
+          inflightNodeRef.current = null;
+        }
+      };
+    }
+
+    revealedNodeRef.current = nodeId;
+    setRevealPhase('visible');
+    return undefined;
+  }, [started, current?.node.id, atNotify, isSuspectChat]);
+
+  const handleStart = () => {
+    if (!isCastReady(draft)) {
+      setStartError('Escribe los tres nombres para empezar.');
+      return;
+    }
+    const nextCast = sanitizeCast(draft);
+    setCast(nextCast);
+    setState(startWhatsAppSession());
+    setRevealPhase('wait');
+    setLines([]);
+    revealedNodeRef.current = null;
+    inflightNodeRef.current = null;
+    lineSeqRef.current = 0;
+    setLastFeedback(null);
+    setLastOptionId(null);
+    setNotice(null);
+    setStartError(null);
+    setStarted(true);
+  };
+
   const handleChoose = (optionId: string) => {
+    if (!state) {
+      return;
+    }
     setChoosing(true);
     try {
       const result = controllerRef.current.applyOption(state, optionId);
@@ -71,6 +174,16 @@ export function WhatsAppFamiliarSession() {
       }
       setNotice(null);
       setLastFeedback(result.feedback);
+      setLastOptionId(optionId);
+      const nextPres = WHATSAPP_FAMILIAR_PRESENTATION[result.state.currentNodeId];
+      const nextIsSuspect = nextPres?.surface === 'messenger' && nextPres.thread === 'suspect';
+      if (isSuspectChat && nextIsSuspect) {
+        const brief = briefOutgoingReply(optionId);
+        if (brief) {
+          pushLine('outgoing', brief, presentation?.time ?? '10:42');
+        }
+      }
+      setRevealPhase(nextIsSuspect ? 'wait' : 'visible');
       setState(result.state);
     } finally {
       setChoosing(false);
@@ -78,16 +191,21 @@ export function WhatsAppFamiliarSession() {
   };
 
   const handleRestart = () => {
-    const nextCast = sanitizeCast(draft);
-    setCast(nextCast);
-    setState(controllerRef.current.restart());
+    setDraft(EMPTY_CAST_DRAFT);
+    setCast(EMPTY_CAST_DRAFT);
+    setStarted(false);
+    setState(null);
+    setRevealPhase('wait');
+    setLines([]);
+    revealedNodeRef.current = null;
+    inflightNodeRef.current = null;
+    lineSeqRef.current = 0;
     setLastFeedback(null);
+    setLastOptionId(null);
     setNotice(null);
+    setStartError(null);
     setChoosing(false);
-  };
-
-  const applyNames = () => {
-    setCast(sanitizeCast(draft));
+    controllerRef.current.restart();
   };
 
   return (
@@ -114,18 +232,18 @@ export function WhatsAppFamiliarSession() {
           </Alert>
         ) : null}
 
-        <div className="phone-stage">
+        {!started ? (
           <form
-            className="phone-cast"
+            className="phone-cast phone-cast--setup"
             onSubmit={(event) => {
               event.preventDefault();
-              applyNames();
+              handleStart();
             }}
           >
-            <h2 className="phone-cast__title">Nombres de esta historia</h2>
+            <h2 className="phone-cast__title">Antes de empezar</h2>
             <p className="phone-cast__hint">
-              Son ficticios y solo cambian el texto. No se guardan. Predeterminados: Alex, Diego,
-              hijo.
+              Estos nombres son ficticios y solo se usan en esta historia. No se guardan. Los tres
+              campos son obligatorios.
             </p>
             <label>
               Tu nombre en el ejercicio
@@ -136,6 +254,7 @@ export function WhatsAppFamiliarSession() {
                 }}
                 maxLength={40}
                 autoComplete="off"
+                required
               />
             </label>
             <label>
@@ -147,10 +266,11 @@ export function WhatsAppFamiliarSession() {
                 }}
                 maxLength={40}
                 autoComplete="off"
+                required
               />
             </label>
             <label>
-              Relación (hijo, hermana…)
+              Relación familiar
               <input
                 value={draft.relationship}
                 onChange={(event) => {
@@ -158,37 +278,51 @@ export function WhatsAppFamiliarSession() {
                 }}
                 maxLength={40}
                 autoComplete="off"
+                required
+                placeholder="hijo, hermana, padre…"
               />
             </label>
-            <Button type="submit" variant="secondary">
-              Usar estos nombres en los textos
-            </Button>
+            {startError ? <p className="phone-cast__error">{startError}</p> : null}
+            <Button type="submit">Empezar simulación</Button>
           </form>
-
-          {current && presentation ? (
+        ) : current && presentation && state ? (
+          <div className="phone-stage phone-stage--play">
             <PhoneShell
               time={presentation.time}
               appLabel={presentation.appLabel}
               subtitle={threadSubtitle(presentation.thread, cast)}
+              variant={showChatThread ? 'chat' : 'default'}
+              contactName={incomingSenderLabel(cast)}
+              contactInitials={contactInitials(cast.relativeName)}
+              headerStatus={
+                revealPhase === 'typing'
+                  ? 'escribiendo…'
+                  : threadSubtitle(presentation.thread, cast)
+              }
             >
-              {presentation.surface === 'notification' ? (
+              {showChatThread ? (
+                <ChatThread
+                  lines={lines}
+                  typing={revealPhase === 'typing'}
+                  senderName={incomingSenderLabel(cast)}
+                />
+              ) : null}
+
+              {!showChatThread && presentation.surface === 'messenger' ? (
+                <div className="phone-thread">
+                  <div className="phone-bubble" data-tone="system">
+                    <span className="phone-bubble__time">{presentation.time}</span>
+                    {bind(current.node.situation)}
+                  </div>
+                </div>
+              ) : null}
+
+              {!atNotify && presentation.surface === 'notification' ? (
                 <div className="phone-lock">
                   <p className="phone-lock__time">{presentation.time}</p>
                   <div className="phone-lock__card">
                     <p className="phone-lock__app">{presentation.appLabel}</p>
                     <p>{bind(current.node.situation)}</p>
-                  </div>
-                </div>
-              ) : null}
-
-              {presentation.surface === 'messenger' ? (
-                <div className="phone-thread">
-                  <div
-                    className="phone-bubble"
-                    data-tone={presentation.thread === 'suspect' ? 'incoming' : 'system'}
-                  >
-                    <span className="phone-bubble__time">{presentation.time}</span>
-                    {bind(current.node.situation)}
                   </div>
                 </div>
               ) : null}
@@ -203,22 +337,18 @@ export function WhatsAppFamiliarSession() {
                 </div>
               ) : null}
 
-              {lastFeedback ? (
-                <div className="phone-feedback">
-                  <p>
-                    <strong>Qué implica:</strong> {bind(lastFeedback.explanation)}
-                  </p>
-                  <p>
-                    <strong>Siguiente hábito:</strong> {bind(lastFeedback.recommendation)}
-                  </p>
-                  <AdviceVoiceBar
-                    scenarioSlug={WHATSAPP_FAMILIAR_SCENARIO.slug}
-                    feedback={lastFeedback}
-                  />
-                </div>
+              {lastFeedback && lastOptionId ? (
+                <EducationalAdvice
+                  scenarioSlug={WHATSAPP_FAMILIAR_SCENARIO.slug}
+                  optionId={lastOptionId}
+                  explanation={bind(lastFeedback.explanation)}
+                  recommendation={bind(lastFeedback.recommendation)}
+                />
               ) : null}
 
-              {!current.node.isTerminal && state.status === 'active' ? (
+              {!current.node.isTerminal &&
+              state.status === 'active' &&
+              canChooseAtPhase(revealPhase) ? (
                 <div className="phone-actions">
                   <p>{bind(current.node.prompt)}</p>
                   {current.options.map((option) => (
@@ -236,8 +366,8 @@ export function WhatsAppFamiliarSession() {
                 </div>
               ) : null}
             </PhoneShell>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         <div className="row">
           <Button type="button" variant="secondary" onClick={handleRestart}>

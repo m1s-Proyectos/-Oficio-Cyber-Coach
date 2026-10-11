@@ -16,5 +16,6 @@ export {
 } from './audioCache';
 export { AdviceNarrationController } from './adviceNarration';
 export { requestAdviceAudio } from './requestAdviceAudio';
+export { OPTION_VOICE_MAP, optionVoiceKey } from './optionVoiceMap';
 export { resolveFeedbackAdviceId } from './resolveFeedbackAdvice';
 export { synthesizeAdviceAudio, type SynthesizeAdviceResult } from './synthesizeAdvice';

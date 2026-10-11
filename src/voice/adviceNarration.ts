@@ -1,7 +1,8 @@
 import { requestAdviceAudio } from './requestAdviceAudio';
 import type { SynthesizeAdviceResult } from './synthesizeAdvice';
 
-export type NarrationStatus = 'idle' | 'loading' | 'ready' | 'playing' | 'blocked' | 'unavailable';
+export type NarrationStatus =
+  'idle' | 'loading' | 'ready' | 'playing' | 'paused' | 'blocked' | 'unavailable';
 
 export type NarrationSnapshot = {
   status: NarrationStatus;
@@ -63,14 +64,33 @@ export class AdviceNarrationController {
     this.stopPlayback();
     this.adviceId = adviceId;
     this.message = null;
-    this.status = adviceId ? 'idle' : 'idle';
+    this.status = 'idle';
     this.inFlightKey = null;
-    this.notify();
-    if (adviceId && !this.muted) {
-      void this.ensureAudio(this.epoch, true);
-    } else if (!adviceId) {
-      this.message = null;
+    if (adviceId && this.cache.has(adviceId)) {
+      this.objectUrl = this.cache.get(adviceId) ?? null;
+      this.status = 'ready';
     }
+    this.notify();
+  }
+
+  play(): void {
+    if (this.muted || !this.adviceId) {
+      return;
+    }
+    if (this.status === 'paused' && this.audio) {
+      this.resumeCurrent(this.epoch);
+      return;
+    }
+    void this.ensureAudio(this.epoch, true);
+  }
+
+  pause(): void {
+    if (!this.audio || this.status !== 'playing') {
+      return;
+    }
+    this.audio.pause();
+    this.status = 'paused';
+    this.notify();
   }
 
   setMuted(muted: boolean): void {
@@ -84,14 +104,14 @@ export class AdviceNarrationController {
       return;
     }
     this.notify();
-    if (this.adviceId) {
-      void this.ensureAudio(this.epoch, true);
-    }
   }
 
   replay(): void {
     if (this.muted || !this.adviceId) {
       return;
+    }
+    if (this.audio) {
+      this.audio.currentTime = 0;
     }
     void this.ensureAudio(this.epoch, true);
   }
@@ -188,6 +208,17 @@ export class AdviceNarrationController {
     this.stopPlayback();
     const element = this.host.createAudio(this.objectUrl);
     this.audio = element;
+    this.bindPlayback(element, epoch);
+  }
+
+  private resumeCurrent(epoch: number): void {
+    if (this.muted || epoch !== this.epoch || !this.audio) {
+      return;
+    }
+    this.bindPlayback(this.audio, epoch);
+  }
+
+  private bindPlayback(element: BrowserAudio, epoch: number): void {
     element.onended = () => {
       if (epoch !== this.epoch) {
         return;

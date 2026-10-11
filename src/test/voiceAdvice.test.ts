@@ -15,8 +15,10 @@ import {
 } from '../voice/elevenLabsTts';
 import { requestAdviceAudio } from '../voice/requestAdviceAudio';
 import { synthesizeAdviceAudio } from '../voice/synthesizeAdvice';
+import { MemoryVoiceQuotaStore } from '../../convex/lib/voice/voiceQuotaStore';
 
 const SAMPLE_ENV = {
+  VOICE_ENABLED: 'true',
   ELEVENLABS_API_KEY: 'sk_test_not_real',
   ELEVENLABS_VOICE_ID: 'voice_test',
   ELEVENLABS_MODEL_ID: 'model_test',
@@ -169,15 +171,18 @@ describe('synthesizeAdviceAudio', () => {
   it('genera y reutiliza audio', async () => {
     const cache = new ProcessAudioCache();
     const fetchImpl = vi.fn(async () => mpegResponse(16));
+    const quota = new MemoryVoiceQuotaStore();
     const first = await synthesizeAdviceAudio(KNOWN_ID, {
       env: SAMPLE_ENV,
       fetchImpl,
       cache,
+      quota,
     });
     const second = await synthesizeAdviceAudio(KNOWN_ID, {
       env: SAMPLE_ENV,
       fetchImpl,
       cache,
+      quota,
     });
     expect(first.ok && first.cacheHit).toBe(false);
     expect(second.ok && second.cacheHit).toBe(true);
@@ -191,11 +196,13 @@ describe('synthesizeAdviceAudio', () => {
   it('invalida caché si cambia la voz', async () => {
     const cache = new ProcessAudioCache();
     const fetchImpl = vi.fn(async () => mpegResponse(8));
-    await synthesizeAdviceAudio(KNOWN_ID, { env: SAMPLE_ENV, fetchImpl, cache });
+    const quota = new MemoryVoiceQuotaStore();
+    await synthesizeAdviceAudio(KNOWN_ID, { env: SAMPLE_ENV, fetchImpl, cache, quota });
     await synthesizeAdviceAudio(KNOWN_ID, {
       env: { ...SAMPLE_ENV, ELEVENLABS_VOICE_ID: 'otra' },
       fetchImpl,
       cache,
+      quota,
     });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });

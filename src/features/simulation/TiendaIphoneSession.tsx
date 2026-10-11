@@ -11,7 +11,7 @@ import {
 } from '../../content/tiendaCast';
 import { TIENDA_IPHONE_PRESENTATION, TIENDA_IPHONE_SCENARIO } from '../../content/tiendaIphone';
 import { getCurrent, type Feedback, type SessionState } from '../../engine';
-import { AdviceVoiceBar } from './AdviceVoiceBar';
+import { EducationalAdvice } from './EducationalAdvice';
 import { PhoneShell } from './phone/PhoneShell';
 import { noticeForChoiceFailure } from './sessionChoice';
 import { createTiendaSessionController, startTiendaSession } from './tiendaSessionChoice';
@@ -79,6 +79,7 @@ export function TiendaIphoneSession() {
   const [cast, setCast] = useState<ShopCast>(DEFAULT_SHOP_CAST);
   const [state, setState] = useState<SessionState>(() => startTiendaSession());
   const [lastFeedback, setLastFeedback] = useState<Feedback | null>(null);
+  const [lastOptionId, setLastOptionId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
 
@@ -101,6 +102,7 @@ export function TiendaIphoneSession() {
       }
       setNotice(null);
       setLastFeedback(result.feedback);
+      setLastOptionId(optionId);
       setState(result.state);
     } finally {
       setChoosing(false);
@@ -111,6 +113,7 @@ export function TiendaIphoneSession() {
     setCast(sanitizeShopCast(draft));
     setState(controllerRef.current.restart());
     setLastFeedback(null);
+    setLastOptionId(null);
     setNotice(null);
     setChoosing(false);
   };
@@ -193,19 +196,13 @@ export function TiendaIphoneSession() {
                 ) : null}
               </div>
 
-              {lastFeedback ? (
-                <div className="phone-feedback">
-                  <p>
-                    <strong>Qué implica:</strong> {bind(lastFeedback.explanation)}
-                  </p>
-                  <p>
-                    <strong>Siguiente hábito:</strong> {bind(lastFeedback.recommendation)}
-                  </p>
-                  <AdviceVoiceBar
-                    scenarioSlug={TIENDA_IPHONE_SCENARIO.slug}
-                    feedback={lastFeedback}
-                  />
-                </div>
+              {lastFeedback && lastOptionId ? (
+                <EducationalAdvice
+                  scenarioSlug={TIENDA_IPHONE_SCENARIO.slug}
+                  optionId={lastOptionId}
+                  explanation={bind(lastFeedback.explanation)}
+                  recommendation={bind(lastFeedback.recommendation)}
+                />
               ) : null}
 
               {!current.node.isTerminal && state.status === 'active' ? (

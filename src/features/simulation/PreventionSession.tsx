@@ -11,7 +11,7 @@ import {
   type ScenarioDefinition,
   type SessionState,
 } from '../../engine';
-import { AdviceVoiceBar } from './AdviceVoiceBar';
+import { EducationalAdvice } from './EducationalAdvice';
 import { PhoneShell } from './phone/PhoneShell';
 import {
   createBoundSessionController,
@@ -31,6 +31,7 @@ export function PreventionSession({ pack }: { pack: PreventionPack }) {
   const [cast, setCast] = useState<ScenarioCast>(DEFAULT_CAST);
   const [state, setState] = useState<SessionState>(() => startBoundSession(definition));
   const [lastFeedback, setLastFeedback] = useState<Feedback | null>(null);
+  const [lastOptionId, setLastOptionId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
 
@@ -52,6 +53,7 @@ export function PreventionSession({ pack }: { pack: PreventionPack }) {
       }
       setNotice(null);
       setLastFeedback(result.feedback);
+      setLastOptionId(optionId);
       setState(result.state);
     } finally {
       setChoosing(false);
@@ -62,6 +64,7 @@ export function PreventionSession({ pack }: { pack: PreventionPack }) {
     setCast(sanitizeCast(draft));
     setState(controllerRef.current.restart());
     setLastFeedback(null);
+    setLastOptionId(null);
     setNotice(null);
     setChoosing(false);
   };
@@ -170,16 +173,13 @@ export function PreventionSession({ pack }: { pack: PreventionPack }) {
                 </div>
               ) : null}
 
-              {lastFeedback ? (
-                <div className="phone-feedback">
-                  <p>
-                    <strong>Qué implica:</strong> {bind(lastFeedback.explanation)}
-                  </p>
-                  <p>
-                    <strong>Siguiente hábito:</strong> {bind(lastFeedback.recommendation)}
-                  </p>
-                  <AdviceVoiceBar scenarioSlug={definition.slug} feedback={lastFeedback} />
-                </div>
+              {lastFeedback && lastOptionId ? (
+                <EducationalAdvice
+                  scenarioSlug={definition.slug}
+                  optionId={lastOptionId}
+                  explanation={bind(lastFeedback.explanation)}
+                  recommendation={bind(lastFeedback.recommendation)}
+                />
               ) : null}
 
               {!current.node.isTerminal && state.status === 'active' ? (
