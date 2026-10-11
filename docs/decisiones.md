@@ -60,3 +60,51 @@ Formato por entrada:
 - **Contexto.** Los archivos escritos por el agente en la Fase 01 (`README.md`, `docs/decisiones.md`, `src/app/App.tsx`) habían quedado sin tildes por una conversión al CP1252 de PowerShell.
 - **Decisión.** Verificar la codificación con una prueba de ida y vuelta antes de volver a escribir, confirmar que el canal ya conserva UTF-8 y reescribir con tildes correctas los archivos que esta fase toca.
 - **Consecuencias.** Los documentos de dirección técnica (`PLAN-MAESTRO.md`, `docs/contexto-producto.md`) siguen sin tocarse. El resto del repositorio usa UTF-8 limpio.
+
+---
+
+## 2026-10-10 — Fase 03: vinculación al proyecto Convex existente
+
+- **Contexto.** El proyecto `oficio-cyber-coach` (equipo `frank-33094`) ya existía en el dashboard, vacío. No había configuración de Convex en el repositorio.
+- **Decisión.** Vincular escribiendo `CONVEX_DEPLOYMENT=dev:blissful-kookabura-305` en `.env.local` (no versionado) en lugar de `npx convex dev --configure`, para poder inspeccionar el deployment en modo lectura antes de subir código. La CLI confirmó el destino `frank-33094:oficio-cyber-coach:dev/frank`.
+- **Consecuencias.** No se creó otro proyecto ni deployment. Producción (`intent-ocelot-649`) no se tocó. Cada integrante usa su propio deployment de desarrollo del mismo proyecto.
+
+## 2026-10-10 — Fase 03: esquema mínimo con solo `scenarios`
+
+- **Contexto.** La sección 8.2 del plan define `scenarios`, `sessions`, `decisions` y `results`. La Fase 03 pide esquema, validadores, siembra y lectura desde React.
+- **Decisión.** Declarar solo `scenarios`, con campos de catálogo (`slug`, `version`, `position`, `kicker`, `title`, `summary`, `fictionNotice`, `published`) e índices `by_slug` y `by_published_and_position`. El campo `definition` del guion se añade cuando exista el tipo `ScenarioDefinition` (Fases 04 a 06). `sessions`, `decisions` y `results` llegan con las fases que los usan.
+- **Consecuencias.** No se fija todavía la forma del grafo (D1) ni de la sesión anónima (D2). `version: 0` en la siembra indica que no hay guion aprobado.
+
+## 2026-10-10 — Fase 03: siembra como `internalMutation` idempotente
+
+- **Contexto.** Hace falta un catálogo ficticio reproducible sin exponer escritura al cliente.
+- **Decisión.** `convex/seed.ts` hace upsert por `slug` a partir de `convex/seedData.ts`. Se ejecuta con `npm run seed`. Devuelve `inserted`, `updated` y `unchanged`.
+- **Consecuencias.** Ejecutarla varias veces deja el mismo estado. El cliente no puede invocarla.
+
+## 2026-10-10 — Fase 03: `convex/_generated/` se versiona
+
+- **Contexto.** El `.gitignore` de la Fase 01 ignoraba `convex/_generated/`. La CLI indica que ese código debe versionarse porque sin él el proyecto no compila.
+- **Decisión.** Quitar `convex/_generated/` del `.gitignore` y excluirlo de Prettier. ESLint ya lo ignoraba.
+- **Consecuencias.** `npm run check` funciona en un clon limpio sin acceso a Convex. Tras cambiar `convex/`, hay que volver a generar (lo hace `npm run convex:dev`).
+
+---
+
+## 2026-10-10 — Fase 04: motor puro en memoria; D1 y D2 siguen abiertas
+
+- **Contexto.** El plan asigna a la Fase 04 un motor determinista y Vitest. D1 (grafo embebido frente a nueve tablas) y D2 (sesión anónima en Convex) siguen sin aprobación formal.
+- **Decisión.** Implementar `src/engine` como biblioteca pura que consume un `ScenarioDefinition` en memoria. No persistir `definition` en Convex. No crear tablas `sessions`, `decisions` ni `results`. El fixture `fixture-motor` no es un guion oficial.
+- **Consecuencias.** El motor ya cubre start, choose, evaluate y complete. La persistencia y la publicación del grafo esperan D1 y D2. El puntaje que se ve en el fixture no es el oficial del producto.
+
+## 2026-10-10 — Fase 04: Vitest 2.1.9, sin subir Vite
+
+- **Contexto.** El plan pide Vitest en esta fase. Vitest 5 corrige avisos de `@vitest/mocker` y `tinypool`, pero exige Vite 6 o superior, cambio mayor no autorizado.
+- **Decisión.** Instalar `vitest@2.1.9`, compatible con `vite@5.4.21`. Añadir `npm test` a `npm run check`.
+- **Consecuencias.** Las pruebas del motor corren en Node. La vulnerabilidad de Vite/esbuild y los avisos de desarrollo de Vitest 2 quedan documentados, no resueltos.
+
+---
+
+## 2026-10-10 — Dirección de producto: inmersión y personalización (no cierra D1–D9)
+
+- **Contexto.** El propietario estableció que todas las simulaciones, actuales y futuras, deben poder ser experiencias inmersivas y personalizadas en un entorno digital ficticio, no un cuestionario de botones. La arquitectura debe ser común.
+- **Decisión registrada.** Se documenta el principio en este archivo y en `PLAN-MAESTRO.md`, sección 2. Un motor determinista, un teléfono simulado, superficies reutilizables, definiciones de escenario y variables narrativas. La personalización no altera ids, destinos ni puntajes. Las acciones son `optionId` del guion. Entornos ficticios, sin servicios reales.
+- **Consecuencias.** Esto **no** aprueba D1, D2, D3, D4, D5, D6, D7, D8 ni D9. **No** autoriza implementar el teléfono, `src/content` de A o B, ni cambiar Convex. El guion A se redacta como borrador aparte (`docs/guion-simulacion-a.md`) y espera D4.

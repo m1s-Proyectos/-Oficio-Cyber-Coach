@@ -78,7 +78,9 @@ export function choose(
   if (state.status === 'completed') {
     return fail('SESSION_COMPLETED', 'Esta sesión ya está cerrada. No admite más decisiones.');
   }
-  if (state.choices.some((choice) => choice.nodeId === state.currentNodeId)) {
+  // Solo el paso actual: el grafo A puede volver a un nodo (ciclo con salida).
+  const lastChoice = state.choices[state.choices.length - 1];
+  if (lastChoice?.nodeId === state.currentNodeId) {
     return fail(
       'ALREADY_CHOSEN_ON_NODE',
       'Ya se eligió una opción en este paso. No se puede elegir otra vez.',

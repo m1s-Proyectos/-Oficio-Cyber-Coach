@@ -3,10 +3,10 @@ import type { ScenarioDocument } from './lib/validators';
 /*
  * Siembra ficticia mínima del catálogo (Fase 03).
  *
- * Solo metadatos de catálogo resumidos de `docs/contexto-producto.md`. No es
- * el guion: nodos, opciones y puntos se aprueban en `docs/guion-simulacion-a.md`
- * y `docs/guion-simulacion-b.md` antes de las Fases 05 y 06. `version: 0`
- * indica que todavía no hay guion aprobado.
+ * Solo metadatos de catálogo. No incluye el grafo. `whatsapp-familiar`
+ * permanece en `version: 0`. `tienda-iphone` usa `version: 1` (guion D5
+ * jugable en el cliente). Esta siembra no se aplica sola: hace falta
+ * `npm run seed` en el entorno de desarrollo, no autorizado en esta fase.
  */
 
 export const SCENARIO_SEED: readonly ScenarioDocument[] = [
@@ -25,7 +25,7 @@ export const SCENARIO_SEED: readonly ScenarioDocument[] = [
   },
   {
     slug: 'tienda-iphone',
-    version: 0,
+    version: 1,
     position: 2,
     kicker: 'Simulación B · Compra en línea',
     title: 'El iPhone de $610 que parecía una oportunidad única',
@@ -36,4 +36,12 @@ export const SCENARIO_SEED: readonly ScenarioDocument[] = [
       'Historia ficticia. La tienda, los comentarios y los importes son parte del ejercicio.',
     published: true,
   },
+  /*
+   * Pendiente remoto (Fase 09.2): no ejecutar seed.
+   * Los tres slugs ya son jugables en el cliente (LOCAL_PREVENTION_CATALOG).
+   *
+   * { slug: 'empleo-pago-previo', version: 1, position: 3, ... }
+   * { slug: 'codigo-verificacion', version: 1, position: 4, ... }
+   * { slug: 'supuesto-jefe', version: 1, position: 5, ... }
+   */
 ];

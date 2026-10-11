@@ -34,6 +34,21 @@ export function SiteFooter() {
                     Tienda sospechosa
                   </Link>
                 </li>
+                <li>
+                  <Link to="simulation" params={{ slug: 'empleo-pago-previo' }}>
+                    Empleo con pago
+                  </Link>
+                </li>
+                <li>
+                  <Link to="simulation" params={{ slug: 'codigo-verificacion' }}>
+                    Código de verificación
+                  </Link>
+                </li>
+                <li>
+                  <Link to="simulation" params={{ slug: 'supuesto-jefe' }}>
+                    Supuesto jefe
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>

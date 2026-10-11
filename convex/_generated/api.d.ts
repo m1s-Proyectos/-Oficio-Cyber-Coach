@@ -9,9 +9,14 @@
  */
 
 import type * as lib_validators from "../lib/validators.js";
+import type * as lib_voice_adviceCatalog from "../lib/voice/adviceCatalog.js";
+import type * as lib_voice_audioCache from "../lib/voice/audioCache.js";
+import type * as lib_voice_elevenLabsTts from "../lib/voice/elevenLabsTts.js";
+import type * as lib_voice_synthesizeAdvice from "../lib/voice/synthesizeAdvice.js";
 import type * as scenarios from "../scenarios.js";
 import type * as seed from "../seed.js";
 import type * as seedData from "../seedData.js";
+import type * as voice from "../voice.js";
 
 import type {
   ApiFromModules,
@@ -21,9 +26,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "lib/validators": typeof lib_validators;
+  "lib/voice/adviceCatalog": typeof lib_voice_adviceCatalog;
+  "lib/voice/audioCache": typeof lib_voice_audioCache;
+  "lib/voice/elevenLabsTts": typeof lib_voice_elevenLabsTts;
+  "lib/voice/synthesizeAdvice": typeof lib_voice_synthesizeAdvice;
   scenarios: typeof scenarios;
   seed: typeof seed;
   seedData: typeof seedData;
+  voice: typeof voice;
 }>;
 
 /**

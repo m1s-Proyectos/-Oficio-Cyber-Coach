@@ -16,6 +16,8 @@ export default tseslint.config(
       '.cache/**',
       '**/*.tsbuildinfo',
       'convex/_generated/**',
+      'setup.js',
+      'backups/**',
     ],
   },
   js.configs.recommended,

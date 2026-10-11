@@ -77,6 +77,22 @@ Debe enseñar a:
 
 No se limita a historias estáticas ni a un cuestionario de opción múltiple. Cada simulación presenta escenario, decisiones, consecuencias, explicaciones y una oportunidad de aprendizaje.
 
+### Experiencia inmersiva y personalizable (dirección de producto)
+
+**Todas las simulaciones presentes y futuras deben poder ser inmersivas y personalizables.** La persona participa en una historia dentro de un entorno digital ficticio —por ejemplo mensajería, buscador, perfil social o tienda simulada—, toma decisiones y observa consecuencias. No es un rasgo exclusivo de la Simulación A.
+
+La arquitectura prevista reutiliza un motor determinista, un teléfono simulado compartido, superficies visuales reutilizables, definiciones de escenario y una capa de personalización narrativa. No se construye una aplicación independiente por historia.
+
+Reglas de esta dirección:
+
+- La personalización puede cambiar nombres y textos visibles. No puede cambiar identificadores de nodos, destinos, transiciones, reglas ni puntuaciones.
+- Cada clic (resultado de búsqueda, perfil, botón) es una opción prevista del guion (`optionId`). No hay navegación arbitraria a sitios externos.
+- No se usan cuentas reales, mensajes reales, compras, pagos, contraseñas ni fotografías personales.
+- Los entornos se marcan como ficticios.
+- Las simulaciones A y B comparten arquitectura; cada una entra en código solo con su guion aprobado (D4 y D5).
+
+Esta sección registra la dirección. **No autoriza implementar** el teléfono, el elenco, la Fase 05 ni la Fase 06. Las decisiones D1–D9 de la sección 19 siguen pendientes salvo las que ya hayas aprobado por escrito.
+
 ### Límites educativos obligatorios
 
 - Las consecuencias son ficción del escenario. No se presentan como predicción de todos los fraudes ni como estadísticas de mercado.

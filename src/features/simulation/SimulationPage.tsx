@@ -5,9 +5,13 @@ import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import { StatusMessage } from '../../components/StatusMessage';
 import { useCurrentRoute } from '../../app/router';
+import { getPreventionPack, TIENDA_IPHONE_SLUG, WHATSAPP_FAMILIAR_SLUG } from '../../content';
 import { FIXTURE_SLUG, MINIMAL_SCENARIO } from '../../engine';
 import { EngineSession } from './EngineSession';
+import { PreventionSession } from './PreventionSession';
 import { getScenarioPreview, type ScenarioPreview } from './scenarioPreview';
+import { TiendaIphoneSession } from './TiendaIphoneSession';
+import { WhatsAppFamiliarSession } from './WhatsAppFamiliarSession';
 
 export function SimulationPage() {
   const { params } = useCurrentRoute();
@@ -19,6 +23,19 @@ export function SimulationPage() {
 
   if (slug === FIXTURE_SLUG) {
     return <EngineSession definition={MINIMAL_SCENARIO} />;
+  }
+
+  if (slug === WHATSAPP_FAMILIAR_SLUG) {
+    return <WhatsAppFamiliarSession />;
+  }
+
+  if (slug === TIENDA_IPHONE_SLUG) {
+    return <TiendaIphoneSession />;
+  }
+
+  const pack = getPreventionPack(slug);
+  if (pack) {
+    return <PreventionSession key={pack.slug} pack={pack} />;
   }
 
   const preview = getScenarioPreview(slug);
@@ -145,7 +162,7 @@ function UnknownSlugState({ slug }: { slug: string }) {
       <StatusMessage
         kind="error"
         title={`No encontramos el escenario "${slug}"`}
-        description="Los escenarios del catálogo son el mensaje por WhatsApp y la tienda del iPhone. El fixture del motor usa el identificador fixture-motor."
+        description="Los escenarios jugables son WhatsApp, la tienda, empleo con pago previo, código de verificación y supuesto jefe. El fixture del motor usa fixture-motor."
         action={
           <Button as="link" to="home" variant="secondary">
             Volver al catálogo

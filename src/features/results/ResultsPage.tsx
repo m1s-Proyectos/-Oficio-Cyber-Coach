@@ -6,6 +6,7 @@ import { Container } from '../../components/Container';
 import { SectionHeading } from '../../components/SectionHeading';
 import { StatusMessage } from '../../components/StatusMessage';
 import { useCurrentRoute } from '../../app/router';
+import { LOCAL_PLAYABLE_SLUGS, TIENDA_IPHONE_SLUG, WHATSAPP_FAMILIAR_SLUG } from '../../content';
 import { getMockSummary, type MockSummary } from './mockSummary';
 
 export function ResultsPage() {
@@ -22,6 +23,29 @@ export function ResultsPage() {
           action={
             <Button as="link" to="home" variant="secondary">
               Ir al inicio
+            </Button>
+          }
+        />
+      </Container>
+    );
+  }
+
+  if (
+    slug === WHATSAPP_FAMILIAR_SLUG ||
+    slug === TIENDA_IPHONE_SLUG ||
+    LOCAL_PLAYABLE_SLUGS.has(slug)
+  ) {
+    const which =
+      slug === WHATSAPP_FAMILIAR_SLUG ? 'A' : slug === TIENDA_IPHONE_SLUG ? 'B' : 'de prevención';
+    return (
+      <Container size="narrow">
+        <StatusMessage
+          kind="empty"
+          title="El cierre vive en el teléfono simulado"
+          description={`La Simulación ${which} no muestra una calificación oficial (D3 pendiente). Vuelve al reproductor para ver el final educativo de tu rama. La sesión no se guarda.`}
+          action={
+            <Button as="link" to="simulation" params={{ slug }} variant="secondary">
+              {`Abrir la simulación ${which}`}
             </Button>
           }
         />

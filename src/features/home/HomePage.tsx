@@ -34,7 +34,7 @@ export function HomePage() {
       <Container size="wide">
         <section className="hero" aria-labelledby="hero-title">
           <p className="hero__eyebrow">
-            <Badge tone="beacon">Prototipo Fase 03</Badge>
+            <Badge tone="verify">Prototipo Fase 03</Badge>
             Antes de enviar dinero, aprende a verificar
           </p>
           <h1 id="hero-title" className="hero__title">
@@ -56,7 +56,7 @@ export function HomePage() {
               variant="secondary"
               size="lg"
             >
-              Explorar la simulación B
+              Jugar la simulación B
             </Button>
           </div>
           <div className="hero__disclaimer">
@@ -73,8 +73,8 @@ export function HomePage() {
           <SectionHeading
             id="catalog-title"
             eyebrow="Catálogo"
-            title="Dos simulaciones, un mismo motor"
-            subtitle="Las dos historias comparten ciclo educativo: observar, decidir, verificar y recuperar. El catálogo se carga desde el servidor; el reproductor y la evaluación llegan en fases posteriores."
+            title="Cinco simulaciones, un mismo motor"
+            subtitle="A y B salen del catálogo remoto. Empleo, código y supuesto jefe se recorren en el cliente (reto-2, reto-7 y reto-4 de NoCaigas). Sin puntaje oficial (D3 pendiente)."
           />
           <PublishedCatalog />
         </section>
@@ -104,9 +104,9 @@ export function HomePage() {
         <section aria-labelledby="status-title">
           <Alert tone="info" title="Estado real del prototipo">
             <p>
-              El catálogo de esta portada se sirve desde Convex. El motor de la Fase 04 ya evalúa un
-              fixture de prueba en memoria. Los guiones oficiales llegan en las Fases 05 y 06, y el
-              puntaje oficial en la Fase 07.
+              A y B se anuncian desde Convex. Tres escenarios de prevención se cargan en el cliente
+              y no se han sembrado en remoto. El motor corre en memoria. Sin puntaje oficial (D3
+              pendiente).
             </p>
             <p>
               <Button as="link" to="simulation" params={{ slug: 'fixture-motor' }} variant="ghost">

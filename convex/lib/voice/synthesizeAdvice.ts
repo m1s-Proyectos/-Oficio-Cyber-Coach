@@ -1,0 +1,111 @@
+import { MAX_ADVICE_TEXT_CHARS, fingerprintText, resolveAdviceText } from './adviceCatalog';
+import { buildAudioCacheKey, processAudioCache, type ProcessAudioCache } from './audioCache';
+import {
+  readVoiceProviderConfig,
+  requestElevenLabsMpeg,
+  type ProviderFailure,
+  type VoiceProviderConfig,
+} from './elevenLabsTts';
+
+export type SynthesizeAdviceOk = {
+  ok: true;
+  adviceId: string;
+  mimeType: 'audio/mpeg';
+  audioBase64: string;
+  cacheHit: boolean;
+};
+
+export type SynthesizeAdviceErr = {
+  ok: false;
+  code: 'UNKNOWN_ADVICE' | 'TEXT_TOO_LONG' | ProviderFailure['code'];
+  message: string;
+};
+
+export type SynthesizeAdviceResult = SynthesizeAdviceOk | SynthesizeAdviceErr;
+
+export type SynthesizeAdviceDeps = {
+  env: Record<string, string | undefined>;
+  fetchImpl: typeof fetch;
+  cache?: ProcessAudioCache;
+  timeoutMs?: number;
+};
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunk));
+  }
+  return btoa(binary);
+}
+
+export async function synthesizeAdviceAudio(
+  adviceId: string,
+  deps: SynthesizeAdviceDeps,
+): Promise<SynthesizeAdviceResult> {
+  const text = resolveAdviceText(adviceId);
+  if (text === null) {
+    return { ok: false, code: 'UNKNOWN_ADVICE', message: 'Consejo no autorizado.' };
+  }
+  if (text.length > MAX_ADVICE_TEXT_CHARS) {
+    return { ok: false, code: 'TEXT_TOO_LONG', message: 'El consejo supera el límite de texto.' };
+  }
+
+  const config = readVoiceProviderConfig(deps.env);
+  if ('error' in config) {
+    return { ok: false, code: config.error.code, message: config.error.message };
+  }
+
+  const cache = deps.cache ?? processAudioCache;
+  const key = buildAudioCacheKey({
+    adviceId,
+    textFingerprint: fingerprintText(text),
+    voiceId: config.voiceId,
+    modelId: config.modelId,
+  });
+
+  try {
+    const { audio, cacheHit } = await cache.getOrCreate(key, async () => {
+      const generated = await requestElevenLabsMpeg(config, text, deps.fetchImpl, deps.timeoutMs);
+      if ('error' in generated) {
+        throw generated.error;
+      }
+      return generated.audio;
+    });
+
+    return {
+      ok: true,
+      adviceId,
+      mimeType: 'audio/mpeg',
+      audioBase64: arrayBufferToBase64(audio),
+      cacheHit,
+    };
+  } catch (error) {
+    if (isProviderFailure(error)) {
+      return { ok: false, code: error.code, message: error.message };
+    }
+    return { ok: false, code: 'PROVIDER_ERROR', message: 'No se pudo generar el audio.' };
+  }
+}
+
+function isProviderFailure(value: unknown): value is ProviderFailure {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'code' in value &&
+    'message' in value &&
+    typeof (value as ProviderFailure).code === 'string' &&
+    typeof (value as ProviderFailure).message === 'string'
+  );
+}
+
+export function voiceConfigFromProcessEnv(): Record<string, string | undefined> {
+  return {
+    ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
+    ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID,
+    ELEVENLABS_MODEL_ID: process.env.ELEVENLABS_MODEL_ID,
+  };
+}
+
+export type { VoiceProviderConfig };

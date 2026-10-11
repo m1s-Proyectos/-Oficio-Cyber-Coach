@@ -2,7 +2,7 @@
 
 Plataforma educativa para reconocer señales de fraude digital y practicar decisiones seguras en escenarios ficticios.
 
-Este repositorio contiene el prototipo navegable del producto. Las simulaciones reales, el motor de decisiones y la integración con Convex se incorporan en fases posteriores del plan. Consulta `PLAN-MAESTRO.md` para el alcance oficial de cada fase y `docs/contexto-producto.md` para la dirección educativa.
+Este repositorio contiene el prototipo navegable del producto, conectado a un backend Convex de desarrollo. El motor de simulación ya existe como biblioteca pura; los guiones oficiales de las dos historias llegan en fases posteriores. Consulta `PLAN-MAESTRO.md` para el alcance oficial de cada fase y `docs/contexto-producto.md` para la dirección educativa.
 
 > **Aviso.** Todas las historias que llegarán al producto son ficticias. No son estadísticas de mercado ni predicciones sobre un fraude concreto. No se piden datos personales reales para completar una simulación.
 
@@ -10,22 +10,22 @@ Este repositorio contiene el prototipo navegable del producto. Las simulaciones 
 
 ## Estado actual
 
-**Fase 02 completada:** diseño visual y navegación. El prototipo arranca con portada, catálogo, reproductor placeholder y resumen simulado. Pasa `typecheck`, `lint`, `format:check` y `build`. Todavía no evalúa decisiones, no calcula puntuaciones reales y no se conecta a ningún servicio.
+**Fase 04 completada:** motor de simulación y pruebas. El catálogo sigue saliendo de Convex. Un fixture de prueba recorre el motor en memoria. Las historias oficiales aún no están implementadas.
 
-| Pieza                                                               | Estado                                                                                                           |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Repositorio Git local                                               | Inicializado en la rama `main`. Sin remoto. Sin commits aún.                                                     |
-| React 18 + Vite 5 + TypeScript estricto                             | Configurado                                                                                                      |
-| ESLint 9 (flat config) y Prettier 3                                 | Configurados                                                                                                     |
-| Scripts npm (`typecheck`, `lint`, `format:check`, `build`, `check`) | Operativos                                                                                                       |
-| Identidad visual (propuesta Fase 02)                                | Paleta navy + ámbar + teal, tipografía del sistema. Decisión D7 del plan sigue pendiente de confirmación formal. |
-| Enrutamiento                                                        | Router propio por hash, sin dependencias externas                                                                |
-| Portada, reproductor y resumen                                      | Prototipos navegables con contenido etiquetado como vista previa                                                 |
-| Convex                                                              | No instalado. Llega en la Fase 03.                                                                               |
-| Motor de simulaciones                                               | No implementado. Llega en la Fase 04.                                                                            |
-| Simulación A (WhatsApp)                                             | Reproductor placeholder; guion completo en Fase 05                                                               |
-| Simulación B (iPhone)                                               | Reproductor placeholder; guion completo en Fase 06                                                               |
-| Coach de IA                                                         | No integrado. Llega en la Fase 08 (opcional).                                                                    |
+| Pieza                                                                       | Estado                                                                                                           |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Repositorio Git local                                                       | Inicializado en la rama `main`. Sin remoto. Sin commits aún.                                                     |
+| React 18 + Vite 5 + TypeScript estricto                                     | Configurado                                                                                                      |
+| ESLint 9 (flat config) y Prettier 3                                         | Configurados                                                                                                     |
+| Scripts npm (`typecheck`, `lint`, `format:check`, `test`, `build`, `check`) | Operativos                                                                                                       |
+| Identidad visual (propuesta Fase 02)                                        | Paleta navy + ámbar + teal, tipografía del sistema. Decisión D7 del plan sigue pendiente de confirmación formal. |
+| Enrutamiento                                                                | Router propio por hash, sin dependencias externas                                                                |
+| Portada, reproductor y resumen                                              | Prototipos navegables con contenido etiquetado como vista previa                                                 |
+| Convex                                                                      | `convex@1.46`. Tabla `scenarios`, query `listPublished`, siembra ficticia. Solo deployment de desarrollo.        |
+| Motor de simulaciones                                                       | `src/engine`. Determinista. Fixture `fixture-motor`. Sin persistencia de sesión.                                 |
+| Simulación A (WhatsApp)                                                     | Reproductor placeholder; guion completo en Fase 05                                                               |
+| Simulación B (iPhone)                                                       | Reproductor placeholder; guion completo en Fase 06                                                               |
+| Coach de IA                                                                 | No integrado. Llega en la Fase 08 (opcional).                                                                    |
 
 ---
 
@@ -43,7 +43,25 @@ Opcional, para que el agente de IA del equipo recupere la documentación antes d
 
 ```bash
 npm install
-npm run dev
+```
+
+### Primera vez: vincular el proyecto Convex existente
+
+El proyecto Convex ya existe (`oficio-cyber-coach`, equipo `frank-33094`). **No crees otro.**
+
+1. Inicia sesión en la CLI, si no lo has hecho en este equipo: `npx convex login` (abre el navegador).
+2. Copia `.env.example` como `.env.local` y sustituye los valores de ejemplo por los de **tu** deployment de desarrollo de `oficio-cyber-coach` (nombre y URL visibles en el dashboard del deployment). Cada integrante tiene su propio deployment de desarrollo dentro del mismo proyecto.
+   Alternativa guiada: `npx convex dev --configure existing --team frank-33094 --project oficio-cyber-coach`.
+3. Sube el esquema y las funciones al deployment de desarrollo: `npm run convex:dev` (se queda vigilando cambios; `Ctrl+C` para salir).
+4. Carga el catálogo ficticio: `npm run seed`. Es idempotente: ejecutarlo de nuevo no duplica documentos.
+
+### Día a día
+
+En dos terminales:
+
+```bash
+npm run convex:dev   # sincroniza convex/ con tu deployment de desarrollo
+npm run dev          # interfaz
 ```
 
 El comando `npm run dev` arranca Vite en `http://localhost:5173/`. El prototipo se abre en la portada; usa los enlaces del header o del catálogo para navegar. El enrutador es por hash: la URL se verá como `http://localhost:5173/#/simulaciones/whatsapp-familiar`.
@@ -54,17 +72,20 @@ El comando `npm run dev` arranca Vite en `http://localhost:5173/`. El prototipo 
 
 ## Scripts disponibles
 
-| Script                 | Qué hace                                                                                                   |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `npm run dev`          | Servidor de desarrollo (Vite).                                                                             |
-| `npm run build`        | Comprueba tipos y produce `dist/` listo para servir estáticamente.                                         |
-| `npm run preview`      | Sirve el `dist/` generado para una revisión rápida.                                                        |
-| `npm run typecheck`    | `tsc -b`. Falla ante cualquier error de tipos.                                                             |
-| `npm run lint`         | ESLint sobre `src/` y los archivos de configuración.                                                       |
-| `npm run lint:fix`     | ESLint con correcciones automáticas.                                                                       |
-| `npm run format`       | Prettier escribe el formato.                                                                               |
-| `npm run format:check` | Prettier comprueba el formato sin modificar.                                                               |
-| `npm run check`        | Ejecuta typecheck + lint + format:check + build. Es el comando que debe pasar antes de proponer un commit. |
+| Script                 | Qué hace                                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Servidor de desarrollo (Vite).                                                                            |
+| `npm run build`        | Comprueba tipos y produce `dist/` listo para servir estáticamente.                                        |
+| `npm run preview`      | Sirve el `dist/` generado para una revisión rápida.                                                       |
+| `npm run typecheck`    | `tsc -b`. Falla ante cualquier error de tipos.                                                            |
+| `npm run lint`         | ESLint sobre `src/` y los archivos de configuración.                                                      |
+| `npm run lint:fix`     | ESLint con correcciones automáticas.                                                                      |
+| `npm run format`       | Prettier escribe el formato.                                                                              |
+| `npm run format:check` | Prettier comprueba el formato sin modificar.                                                              |
+| `npm test`             | Vitest: invariantes del motor sobre el fixture.                                                           |
+| `npm run check`        | typecheck + lint + format:check + test + build. Es el comando que debe pasar antes de proponer un commit. |
+| `npm run convex:dev`   | `convex dev`: genera tipos y sincroniza `convex/` con el deployment de **desarrollo**.                    |
+| `npm run seed`         | Ejecuta la mutación interna `seed:seedScenarios` en el deployment de desarrollo.                          |
 
 ---
 
@@ -117,7 +138,9 @@ src/
   main.tsx                Punto de entrada de React.
   vite-env.d.ts           Tipos del cliente Vite.
   app/
-    App.tsx               Raíz: enrutador + layout.
+    App.tsx               Raíz: cliente Convex + enrutador + layout.
+    ConvexClientProvider.tsx  Crea el cliente a partir de VITE_CONVEX_URL.
+    backendStatus.ts      Hook useBackendConfigured.
     Layout.tsx            Cabecera + main + pie, con skip-link.
     PageHeader.tsx        Cabecera con marca y navegación.
     SiteFooter.tsx        Pie con aviso de ficción y recorrido.
@@ -125,18 +148,20 @@ src/
     index.ts              Barrel de exportaciones.
   components/             Componentes reutilizables (Button, Card, Alert, etc.).
   features/
-    home/                 Portada y catálogo (Fase 02).
+    home/                 Portada; PublishedCatalog.tsx lee el catálogo de Convex.
     simulation/           Reproductor placeholder (motor real en Fases 04-06).
     results/              Vista previa del resumen (cálculo real en Fase 07).
     not-found/            Pantalla 404.
   content/                (Fases 05 y 06) Guiones tipados.
-  engine/                 (Fase 04) Motor puro de simulaciones.
+  engine/                 Motor puro: tipos, transiciones, evaluación y fixture.
   styles/
     tokens.css            Design tokens (colores, tipografía, espaciado).
     global.css            Reset + base.
     components.css        Estilos de componentes compartidos.
   test/                   (Fase 04) Pruebas unitarias (Vitest).
-convex/                   (Fase 03) Esquema y funciones.
+convex/                   Esquema, query del catálogo y siembra (ver convex/README.md).
+  _generated/             Tipos generados por la CLI. Se versionan.
+.env.example              Variables necesarias, con valores ficticios.
 ```
 
 ---
@@ -145,8 +170,9 @@ convex/                   (Fase 03) Esquema y funciones.
 
 - TypeScript estricto. `any` prohibido por ESLint. Imports de tipos marcados con `type`.
 - Componentes sin lógica de negocio. El puntaje y las transiciones viven en el motor y en Convex, nunca en React (ver `PLAN-MAESTRO.md`, secciones 6 y 10).
-- Datos ficticios etiquetados como temporales mientras no haya backend. Los archivos de vista previa (`scenarioCatalog.ts`, `scenarioPreview.ts`, `mockSummary.ts`) llevan un comentario inicial que lo advierte.
-- No introducir Convex, autenticación, pagos, analítica externa, IA ni otra base de datos sin autorización explícita y actualización del plan maestro.
+- Datos ficticios etiquetados como temporales mientras no los sirva Convex. Los archivos de vista previa (`scenarioPreview.ts`, `mockSummary.ts`) llevan un comentario inicial que lo advierte. `scenarioCatalog.ts` ya no se importa desde la Fase 03.
+- Funciones públicas de Convex con validadores `args` y `returns`. La siembra es una `internalMutation`, no accesible desde el cliente.
+- No introducir autenticación, pagos, analítica externa, IA ni otra base de datos sin autorización explícita y actualización del plan maestro.
 
 Antes de proponer un commit, ejecutar:
 
@@ -160,7 +186,15 @@ Un commit nunca se crea automáticamente. Siempre se espera autorización explí
 
 ## Variables de entorno
 
-Esta fase no usa variables de entorno. Cuando lleguen (Convex en la Fase 03, un coach de IA en la Fase 08), se documentarán aquí y se mantendrá un `.env.example` sin secretos. Nunca se publican archivos `.env`, `.env.local` ni claves API.
+Viven en `.env.local` (no versionado). `.env.example` muestra la forma con valores ficticios.
+
+| Variable               | Quién la usa         | Qué es                                                                    |
+| ---------------------- | -------------------- | ------------------------------------------------------------------------- |
+| `CONVEX_DEPLOYMENT`    | CLI de Convex        | Deployment de desarrollo al que se sincroniza `convex/` (`dev:<nombre>`). |
+| `VITE_CONVEX_URL`      | Cliente React (Vite) | URL pública del deployment (`https://<nombre>.convex.cloud`).             |
+| `VITE_CONVEX_SITE_URL` | Nadie todavía        | URL de HTTP actions. La escribe la CLI.                                   |
+
+Ninguna es un secreto, pero no se publican archivos `.env*` reales. La credencial de la CLI la guarda `npx convex login` fuera del repositorio. Si falta `VITE_CONVEX_URL` o no es válida, la portada muestra «El catálogo no está disponible» en lugar de fallar.
 
 ---
 
@@ -168,7 +202,7 @@ Esta fase no usa variables de entorno. Cuando lleguen (Convex en la Fase 03, un 
 
 El prototipo todavía no se despliega.
 
-- No ejecutar `npx convex deploy`.
+- No ejecutar `npx convex deploy` (publica en producción). En desarrollo se usa siempre `npx convex dev`.
 - No publicar la aplicación a un hosting ni crear un repositorio remoto.
 - Cualquier acción contra un entorno de producción requiere autorización explícita y pertenece a la Fase 10 del plan.
 

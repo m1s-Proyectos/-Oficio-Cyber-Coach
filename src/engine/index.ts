@@ -1,4 +1,6 @@
 export { complete, choose, evaluate, getCurrent, recommend, start } from './engine';
+export { createChoiceGate } from './choiceGate';
+export type { ChoiceGate } from './choiceGate';
 export { MINIMAL_SCENARIO, FIXTURE_SLUG } from './fixtures/minimalScenario';
 export { validateDefinition } from './validate';
 export type {

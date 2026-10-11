@@ -148,6 +148,56 @@ describe('choose', () => {
     }
   });
 
+  it('permite volver a un nodo si se llega por una transición del grafo', () => {
+    const definition = mutate((item) => {
+      const startNode = item.nodes.start;
+      const second = item.nodes['second-ask'];
+      const first = startNode?.options[0];
+      const loopBack = second?.options[0];
+      if (!startNode || !second || !first || !loopBack) {
+        return item;
+      }
+      return {
+        ...item,
+        nodes: {
+          ...item.nodes,
+          start: {
+            ...startNode,
+            options: [{ ...first, nextNodeId: 'second-ask' }, ...startNode.options.slice(1)],
+          },
+          'second-ask': {
+            ...second,
+            options: [
+              { ...loopBack, id: 'back-to-start', nextNodeId: 'start' },
+              ...second.options.slice(1),
+            ],
+          },
+        },
+      };
+    });
+    const opened = start(definition);
+    expect(opened.ok).toBe(true);
+    if (!opened.ok) {
+      return;
+    }
+    const toSecond = choose(opened.value, definition, 'send-now');
+    expect(toSecond.ok).toBe(true);
+    if (!toSecond.ok) {
+      return;
+    }
+    const back = choose(toSecond.value.state, definition, 'back-to-start');
+    expect(back.ok).toBe(true);
+    if (!back.ok) {
+      return;
+    }
+    expect(back.value.state.currentNodeId).toBe('start');
+    const again = choose(back.value.state, definition, 'verify-first');
+    expect(again.ok).toBe(true);
+    if (again.ok) {
+      expect(again.value.state.currentNodeId).toBe('safe-end');
+    }
+  });
+
   it('rechaza decisiones cuando la sesión está cerrada', () => {
     const finished = mustChoose(mustStart(), 'verify-first');
     const closed = complete(finished, MINIMAL_SCENARIO);
