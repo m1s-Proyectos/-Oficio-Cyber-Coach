@@ -1,5 +1,4 @@
 import { Alert } from '../../components/Alert';
-import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import { SectionHeading } from '../../components/SectionHeading';
@@ -34,7 +33,6 @@ export function HomePage() {
       <Container size="wide">
         <section className="hero" aria-labelledby="hero-title">
           <p className="hero__eyebrow">
-            <Badge tone="verify">Prototipo Fase 03</Badge>
             Antes de enviar dinero, aprende a verificar
           </p>
           <h1 id="hero-title" className="hero__title">
@@ -45,20 +43,6 @@ export function HomePage() {
             reconocer presiones, pedir una segunda señal y detenerte a tiempo. No es una guía legal
             ni una promesa de recuperación: es un espacio de aprendizaje.
           </p>
-          <div className="hero__actions">
-            <Button as="link" to="simulation" params={{ slug: 'whatsapp-familiar' }} size="lg">
-              Comenzar la simulación A
-            </Button>
-            <Button
-              as="link"
-              to="simulation"
-              params={{ slug: 'tienda-iphone' }}
-              variant="secondary"
-              size="lg"
-            >
-              Jugar la simulación B
-            </Button>
-          </div>
           <div className="hero__disclaimer">
             <Alert tone="warning" title="Historias ficticias con fines educativos">
               Los personajes, importes, plazos y conversaciones son parte del ejercicio. No
