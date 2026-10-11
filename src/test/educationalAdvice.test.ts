@@ -19,7 +19,10 @@ describe('experiencia de narración A–E', () => {
       const source = readFileSync(resolve(process.cwd(), file), 'utf8');
       expect(source.includes('EducationalAdvice')).toBe(true);
       expect(source.includes('phone-feedback')).toBe(false);
-      expect(source.includes('explanation={bind(lastFeedback.explanation)}')).toBe(true);
+      expect(
+        source.includes('explanation={bind(lastFeedback.explanation)}') ||
+          source.includes('explanation={bind(overlay.explanation)}'),
+      ).toBe(true);
     }
   });
 

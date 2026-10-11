@@ -38,9 +38,9 @@ describe('OPTION_VOICE_MAP', () => {
     expect([...mapKeys].sort()).toEqual([...realKeys].sort());
   });
 
-  it('tiene 86 IDs de catálogo y 28 exclusiones explícitas', () => {
-    expect(assigned).toHaveLength(86);
-    expect(excluded).toHaveLength(28);
+  it('tiene 91 IDs de catálogo y 23 exclusiones explícitas', () => {
+    expect(assigned).toHaveLength(91);
+    expect(excluded).toHaveLength(23);
   });
 
   it('solo apunta a identificadores existentes del catálogo', () => {

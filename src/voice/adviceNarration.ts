@@ -124,9 +124,6 @@ export class AdviceNarrationController {
       this.host.revokeObjectUrl(url);
     }
     this.cache.clear();
-    if (this.objectUrl && !this.cache.has(this.adviceId ?? '')) {
-      this.host.revokeObjectUrl(this.objectUrl);
-    }
     this.objectUrl = null;
     this.adviceId = null;
     this.status = 'idle';
@@ -159,7 +156,19 @@ export class AdviceNarrationController {
     this.message = null;
     this.notify();
 
-    const result = await requestAdviceAudio(this.host.fetchAdvice, adviceId);
+    let result: SynthesizeAdviceResult;
+    try {
+      result = await requestAdviceAudio(this.host.fetchAdvice, adviceId);
+    } catch {
+      if (epoch !== this.epoch || this.adviceId !== adviceId) {
+        return;
+      }
+      this.inFlightKey = null;
+      this.status = 'unavailable';
+      this.message = 'No se pudo contactar el servicio de voz. El texto sigue disponible.';
+      this.notify();
+      return;
+    }
     if (epoch !== this.epoch || this.adviceId !== adviceId) {
       return;
     }

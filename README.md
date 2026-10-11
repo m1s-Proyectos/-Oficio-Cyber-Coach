@@ -194,19 +194,31 @@ Viven en `.env.local` (no versionado). `.env.example` muestra la forma con valor
 | `VITE_CONVEX_URL`      | Cliente React (Vite) | URL pública del deployment (`https://<nombre>.convex.cloud`).             |
 | `VITE_CONVEX_SITE_URL` | Nadie todavía        | URL de HTTP actions. La escribe la CLI.                                   |
 
-Ninguna es un secreto, pero no se publican archivos `.env*` reales. La credencial de la CLI la guarda `npx convex login` fuera del repositorio. Si falta `VITE_CONVEX_URL` o no es válida, la portada muestra «El catálogo no está disponible» en lugar de fallar.
+Estas tres variables no son secretos, pero no se publican archivos `.env*` reales. La credencial de la CLI la guarda `npx convex login` fuera del repositorio. Si falta `VITE_CONVEX_URL` o no es válida, la portada muestra «El catálogo no está disponible» en lugar de fallar.
+
+La voz se ejecuta en Convex, no en Vite ni en Vercel. Configura en cada deployment de Convex:
+
+- `VOICE_ENABLED=true`
+- `ELEVENLABS_API_KEY` (secreto)
+- `ELEVENLABS_VOICE_ID`
+- `ELEVENLABS_MODEL_ID`
+
+No uses el prefijo `VITE_` para esas variables. La clave privada nunca debe estar en Vercel ni en el bundle del navegador. En desarrollo se pueden administrar con `npx convex env set`; para producción, usa el panel del deployment de producción de Convex cuando se autorice ese despliegue.
 
 ---
 
 ## Despliegue y producción
 
-El prototipo todavía no se despliega.
+`vercel.json` compila con Vite, sirve `dist/` y aplica cabeceras compatibles con Convex y reproducción desde URLs `blob:`. El router usa hash, por lo que una recarga mantiene el documento raíz sin depender de rewrites.
 
-- No ejecutar `npx convex deploy` (publica en producción). En desarrollo se usa siempre `npx convex dev`.
-- No publicar la aplicación a un hosting ni crear un repositorio remoto.
-- Cualquier acción contra un entorno de producción requiere autorización explícita y pertenece a la Fase 10 del plan.
+Preparación de un despliegue posterior:
 
-El comando `npm run build` produce `dist/` para validar que el proyecto compila; no es un paso de despliegue.
+1. Desplegar primero el backend a un deployment **de producción de Convex** mediante el flujo autorizado del proyecto.
+2. Configurar allí las cuatro variables privadas de voz indicadas arriba.
+3. Configurar en Vercel únicamente `VITE_CONVEX_URL` con la URL pública de ese deployment de producción.
+4. Ejecutar `npm run build` y publicar `dist/` mediante la integración de Vercel.
+
+No asumas que Vercel comparte variables con Convex: son servicios y paneles distintos. No ejecutes `npx convex deploy` durante desarrollo; `npx convex dev` usa el deployment de desarrollo.
 
 ---
 

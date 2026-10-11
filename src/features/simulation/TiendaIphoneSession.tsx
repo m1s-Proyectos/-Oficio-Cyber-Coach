@@ -5,118 +5,246 @@ import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import {
   applyShopCast,
-  DEFAULT_SHOP_CAST,
-  sanitizeShopCast,
+  EMPTY_SHOP_DRAFT,
+  isShopCastReady,
+  shopCastFromLearner,
   type ShopCast,
 } from '../../content/tiendaCast';
-import { TIENDA_IPHONE_PRESENTATION, TIENDA_IPHONE_SCENARIO } from '../../content/tiendaIphone';
+import { TIENDA_IPHONE_SCENARIO } from '../../content/tiendaIphone';
 import { getCurrent, type Feedback, type SessionState } from '../../engine';
 import { EducationalAdvice } from './EducationalAdvice';
+import { FacebookListing } from './phone/FacebookListing';
 import { PhoneShell } from './phone/PhoneShell';
+import { SearchBrowser } from './phone/SearchBrowser';
 import { noticeForChoiceFailure } from './sessionChoice';
+import {
+  COMMENTS_REVEAL_MS,
+  decisionsForScreen,
+  engineOpenForResult,
+  overlayFeedback,
+  RESULTS_BY_QUERY,
+  SEARCH_LOAD_MS,
+  scheduleBrowseDelay,
+  screenAfterResult,
+  type BrowseScreen,
+  type ImmersiveDecision,
+  type SearchQuery,
+  type SearchQueryId,
+  type SearchResult,
+} from './tiendaBrowse';
 import { createTiendaSessionController, startTiendaSession } from './tiendaSessionChoice';
 
-function surfaceSubtitle(thread: string): string {
-  switch (thread) {
-    case 'home':
-      return 'Inicio';
-    case 'results':
-      return 'Resultados';
-    case 'note':
-      return 'Nota para comparar';
-    case 'casatec':
-      return 'Ficha de producto';
-    case 'profile':
-      return 'Lumina Móvil';
-    case 'shop':
-      return 'iPhone 14 · $610';
-    case 'reviews':
-      return 'Comentarios';
-    case 'terms':
-      return 'Condiciones';
-    case 'protect':
-      return 'Protección de compra';
-    case 'checkout':
-      return 'Pago ficticio';
-    case 'half':
-      return 'Pago parcial';
-    case 'paid':
-      return 'Pedido';
-    case 'customs':
-      return 'Mensaje de la tienda';
-    case 'verify':
-      return 'Envíos de esta historia';
-    case 'pause':
-      return 'Sin adelanto extra';
-    case 'recover':
-      return 'Pasos de contención';
-    case 'close':
-      return 'Cierre educativo';
-    default:
-      return 'Simulado';
+function backToSearchOption(nodeId: string): string | null {
+  if (nodeId === 'n_profile') {
+    return 'back-search-profile';
   }
-}
-
-function surfaceClass(surface: string): string {
-  if (surface === 'social') {
-    return 'phone-panel phone-panel--social';
+  if (nodeId === 'n_casatec') {
+    return 'back-search';
   }
-  if (surface === 'store') {
-    return 'phone-panel phone-panel--store';
+  if (nodeId === 'n_compare') {
+    return 'back-search-note';
   }
-  if (surface === 'pay') {
-    return 'phone-panel phone-panel--pay';
-  }
-  if (surface === 'result') {
-    return 'phone-result';
-  }
-  return 'phone-panel phone-panel--search';
+  return null;
 }
 
 export function TiendaIphoneSession() {
   const controllerRef = useRef(createTiendaSessionController());
-  const [draft, setDraft] = useState<ShopCast>(DEFAULT_SHOP_CAST);
-  const [cast, setCast] = useState<ShopCast>(DEFAULT_SHOP_CAST);
-  const [state, setState] = useState<SessionState>(() => startTiendaSession());
+  const [draft, setDraft] = useState<ShopCast>(EMPTY_SHOP_DRAFT);
+  const [cast, setCast] = useState<ShopCast>(EMPTY_SHOP_DRAFT);
+  const [started, setStarted] = useState(false);
+  const [state, setState] = useState<SessionState | null>(null);
+  const [screen, setScreen] = useState<BrowseScreen>('empty');
+  const [queryId, setQueryId] = useState<SearchQueryId | null>(null);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [lastFeedback, setLastFeedback] = useState<Feedback | null>(null);
   const [lastOptionId, setLastOptionId] = useState<string | null>(null);
+  const [overlay, setOverlay] = useState<{ explanation: string; recommendation: string } | null>(
+    null,
+  );
   const [notice, setNotice] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
+  const cancelBrowseRef = useRef<(() => void) | null>(null);
 
-  const view = useMemo(() => getCurrent(state, TIENDA_IPHONE_SCENARIO), [state]);
-  const current = view.ok ? view.value : null;
-  const presentation = current ? TIENDA_IPHONE_PRESENTATION[current.node.id] : undefined;
-
+  const view = useMemo(() => (state ? getCurrent(state, TIENDA_IPHONE_SCENARIO) : null), [state]);
+  const current = view?.ok ? view.value : null;
   const bind = (text: string) => applyShopCast(text, cast);
+  const results = queryId && screen === 'results' ? RESULTS_BY_QUERY[queryId] : [];
 
-  const handleChoose = (optionId: string) => {
+  const applyEngine = (live: SessionState, optionId: string) => {
+    const result = controllerRef.current.applyOption(live, optionId);
+    if (!result.ok) {
+      const visible = noticeForChoiceFailure(result);
+      if (visible) {
+        setNotice(visible);
+      }
+      return null;
+    }
+    setNotice(null);
+    setState(result.state);
+    return result;
+  };
+
+  const clearBrowseTimer = () => {
+    cancelBrowseRef.current?.();
+    cancelBrowseRef.current = null;
+  };
+
+  const handleStart = () => {
+    if (!isShopCastReady(draft)) {
+      setStartError('Escribe tu nombre para empezar.');
+      return;
+    }
+    const nextCast = shopCastFromLearner(draft.learner);
+    setCast(nextCast);
+    setDraft(nextCast);
+    clearBrowseTimer();
+    setState(startTiendaSession());
+    setScreen('empty');
+    setQueryId(null);
+    setCommentsOpen(false);
+    setLastFeedback(null);
+    setLastOptionId(null);
+    setOverlay(null);
+    setNotice(null);
+    setStartError(null);
+    setStarted(true);
+  };
+
+  const runQuery = (query: SearchQuery, fromState: SessionState) => {
+    setQueryId(query.id);
+    setScreen('loading');
+    setCommentsOpen(false);
+    setOverlay(null);
+    setLastFeedback(null);
+    setLastOptionId(null);
+    clearBrowseTimer();
+    cancelBrowseRef.current = scheduleBrowseDelay(() => {
+      let live = fromState;
+      if (live.currentNodeId === 'n_home') {
+        const opened = applyEngine(live, 'open-search');
+        if (!opened) {
+          setScreen('empty');
+          return;
+        }
+        live = opened.state;
+      }
+      setScreen('results');
+      cancelBrowseRef.current = null;
+    }, SEARCH_LOAD_MS);
+  };
+
+  const handleQuery = (query: SearchQuery) => {
+    if (!state || choosing) {
+      return;
+    }
     setChoosing(true);
     try {
-      const result = controllerRef.current.applyOption(state, optionId);
-      if (!result.ok) {
-        const visible = noticeForChoiceFailure(result);
-        if (visible) {
-          setNotice(visible);
+      let live = state;
+      const back = backToSearchOption(live.currentNodeId);
+      if (back) {
+        const returned = applyEngine(live, back);
+        if (!returned) {
+          return;
         }
+        live = returned.state;
+      }
+      runQuery(query, live);
+    } finally {
+      setChoosing(false);
+    }
+  };
+
+  const handleOpenResult = (result: SearchResult) => {
+    if (!state || choosing) {
+      return;
+    }
+    const optionId = engineOpenForResult(result.kind);
+    const nextScreen = screenAfterResult(result.kind);
+    if (!optionId || !nextScreen) {
+      return;
+    }
+    setChoosing(true);
+    try {
+      const applied = applyEngine(state, optionId);
+      if (!applied) {
         return;
       }
-      setNotice(null);
-      setLastFeedback(result.feedback);
+      setScreen(nextScreen);
+      setCommentsOpen(false);
+      setOverlay(null);
+      setLastFeedback(null);
+      setLastOptionId(null);
+    } finally {
+      setChoosing(false);
+    }
+  };
+
+  const handleOpenComments = () => {
+    clearBrowseTimer();
+    cancelBrowseRef.current = scheduleBrowseDelay(() => {
+      setCommentsOpen(true);
+      cancelBrowseRef.current = null;
+    }, COMMENTS_REVEAL_MS);
+  };
+
+  const handleDecision = (intent: ImmersiveDecision, optionId: string) => {
+    if (!state || choosing) {
+      return;
+    }
+    setChoosing(true);
+    try {
+      const applied = applyEngine(state, optionId);
+      if (!applied) {
+        return;
+      }
+      if (optionId === 'still-lumina' || optionId === 'open-lumina-informed') {
+        setScreen('facebook');
+        setCommentsOpen(false);
+        setOverlay(null);
+        setLastFeedback(null);
+        setLastOptionId(null);
+        return;
+      }
+      setLastFeedback(applied.feedback);
       setLastOptionId(optionId);
-      setState(result.state);
+      setOverlay(overlayFeedback(intent, screen));
+      setScreen('decided');
     } finally {
       setChoosing(false);
     }
   };
 
   const handleRestart = () => {
-    setCast(sanitizeShopCast(draft));
-    setState(controllerRef.current.restart());
+    clearBrowseTimer();
+    setDraft(EMPTY_SHOP_DRAFT);
+    setCast(EMPTY_SHOP_DRAFT);
+    setStarted(false);
+    setState(null);
+    setScreen('empty');
+    setQueryId(null);
+    setCommentsOpen(false);
     setLastFeedback(null);
     setLastOptionId(null);
+    setOverlay(null);
     setNotice(null);
+    setStartError(null);
     setChoosing(false);
+    controllerRef.current.restart();
   };
+
+  const decisions = decisionsForScreen(screen);
+  const appLabel = screen === 'facebook' ? 'Muro' : screen === 'official' ? 'CasaTec' : 'BuscaYa';
+  const subtitle =
+    screen === 'facebook'
+      ? 'Publicación comercial'
+      : screen === 'official'
+        ? 'Ficha de referencia'
+        : screen === 'compare'
+          ? 'Nota para comparar'
+          : screen === 'results'
+            ? 'Resultados'
+            : 'Inicio';
 
   return (
     <Container size="wide">
@@ -141,90 +269,114 @@ export function TiendaIphoneSession() {
           </Alert>
         ) : null}
 
-        <div className="phone-stage">
+        {!started ? (
           <form
-            className="phone-cast"
+            className="phone-cast phone-cast--setup"
             onSubmit={(event) => {
               event.preventDefault();
-              setCast(sanitizeShopCast(draft));
+              handleStart();
             }}
           >
-            <h2 className="phone-cast__title">Nombres de esta historia</h2>
+            <h2 className="phone-cast__title">Antes de empezar</h2>
             <p className="phone-cast__hint">
-              Son ficticios y solo cambian el texto. No se guardan. Predeterminados: Alex y María.
+              Has ahorrado $700 para comprar un iPhone. Encuentras distintas ofertas en Internet y
+              quieres encontrar una buena opción sin perder tu dinero. El nombre es ficticio y no se
+              guarda.
             </p>
             <label>
-              Tu nombre en el ejercicio
+              Nombre de quien realizará la prueba
               <input
                 value={draft.learner}
                 onChange={(event) => {
-                  setDraft({ ...draft, learner: event.target.value });
+                  setDraft({
+                    ...draft,
+                    learner: event.target.value,
+                    shopperName: event.target.value,
+                  });
                 }}
                 maxLength={40}
                 autoComplete="off"
+                required
               />
             </label>
-            <label>
-              Quien busca el teléfono
-              <input
-                value={draft.shopperName}
-                onChange={(event) => {
-                  setDraft({ ...draft, shopperName: event.target.value });
-                }}
-                maxLength={40}
-                autoComplete="off"
-              />
-            </label>
-            <Button type="submit" variant="secondary">
-              Usar estos nombres en los textos
-            </Button>
+            {startError ? <p className="phone-cast__error">{startError}</p> : null}
+            <Button type="submit">Empezar simulación</Button>
           </form>
-
-          {current && presentation ? (
-            <PhoneShell
-              time={presentation.time}
-              appLabel={presentation.appLabel}
-              subtitle={surfaceSubtitle(presentation.thread)}
-            >
-              <div className={surfaceClass(presentation.surface)}>
-                {presentation.surface === 'result' ? <h2>Cierre del ejercicio</h2> : null}
-                <p>{bind(current.node.situation)}</p>
-                {current.node.isTerminal ? (
-                  <p>
-                    No hay calificación oficial. D3 sigue pendiente. Este cierre no es un puntaje.
-                  </p>
-                ) : null}
-              </div>
-
-              {lastFeedback && lastOptionId ? (
-                <EducationalAdvice
-                  scenarioSlug={TIENDA_IPHONE_SCENARIO.slug}
-                  optionId={lastOptionId}
-                  explanation={bind(lastFeedback.explanation)}
-                  recommendation={bind(lastFeedback.recommendation)}
+        ) : (
+          <div className="phone-stage phone-stage--play">
+            <PhoneShell time="16:10" appLabel={appLabel} subtitle={subtitle} variant="default">
+              {screen === 'empty' || screen === 'loading' || screen === 'results' ? (
+                <SearchBrowser
+                  queryId={queryId}
+                  results={results}
+                  loading={screen === 'loading'}
+                  empty={screen === 'empty'}
+                  onQuery={handleQuery}
+                  onOpenResult={handleOpenResult}
                 />
               ) : null}
 
-              {!current.node.isTerminal && state.status === 'active' ? (
+              {screen === 'facebook' ? (
+                <FacebookListing commentsOpen={commentsOpen} onOpenComments={handleOpenComments} />
+              ) : null}
+
+              {screen === 'official' ? (
+                <div className="phone-panel phone-panel--store">
+                  <p>
+                    <strong>CasaTec</strong> · iPhone 14 · $1.190
+                  </p>
+                  <p>
+                    Comercio de referencia de esta historia. Retiro en tienda ficticia. No es un
+                    comercio real.
+                  </p>
+                </div>
+              ) : null}
+
+              {screen === 'compare' ? (
+                <div className="phone-panel phone-panel--search">
+                  <p>
+                    Precio de referencia en este relato: cerca de $1.190. Mira quién vende,
+                    opiniones fuera del anuncio y si el pago te protege.
+                  </p>
+                </div>
+              ) : null}
+
+              {screen === 'decided' && overlay && lastFeedback && lastOptionId ? (
+                <EducationalAdvice
+                  key={lastOptionId}
+                  scenarioSlug={TIENDA_IPHONE_SCENARIO.slug}
+                  optionId={lastOptionId}
+                  explanation={bind(overlay.explanation)}
+                  recommendation={bind(overlay.recommendation)}
+                />
+              ) : null}
+
+              {decisions.length > 0 && (screen !== 'facebook' || commentsOpen) ? (
                 <div className="phone-actions">
-                  <p>{bind(current.node.prompt)}</p>
-                  {current.options.map((option) => (
+                  <p>¿Qué harías en esta situación?</p>
+                  {decisions.map((decision) => (
                     <button
-                      key={option.id}
+                      key={decision.optionId}
                       type="button"
                       disabled={choosing}
                       onClick={() => {
-                        handleChoose(option.id);
+                        handleDecision(decision.intent, decision.optionId);
                       }}
                     >
-                      {bind(option.label)}
+                      {decision.label}
                     </button>
                   ))}
                 </div>
               ) : null}
+
+              {current && screen === 'decided' && current.node.isTerminal ? (
+                <p className="search-browser__empty">
+                  No hay calificación oficial. D3 sigue pendiente. La compra no se realizó.
+                </p>
+              ) : null}
             </PhoneShell>
-          ) : null}
-        </div>
+          </div>
+        )}
 
         <div className="row">
           <Button type="button" variant="secondary" onClick={handleRestart}>

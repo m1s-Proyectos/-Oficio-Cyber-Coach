@@ -83,6 +83,9 @@ export function WhatsAppFamiliarSession() {
   const atNotify = current?.node.id === 'n_notify';
   const isSuspectChat = presentation?.surface === 'messenger' && presentation.thread === 'suspect';
   const showChatThread = Boolean(atNotify || isSuspectChat);
+  const currentNodeId = current?.node.id;
+  const currentSituation = current?.node.situation;
+  const presentationTime = presentation?.time;
 
   const bind = (text: string) => applyCast(text, cast);
 
@@ -93,16 +96,16 @@ export function WhatsAppFamiliarSession() {
   };
 
   useEffect(() => {
-    if (!started || !current || !presentation) {
+    if (!started || !currentNodeId || !currentSituation || !presentationTime) {
       return undefined;
     }
-    const nodeId = current.node.id;
+    const nodeId = currentNodeId;
     if (revealedNodeRef.current === nodeId) {
       return undefined;
     }
 
-    const situation = bind(current.node.situation);
-    const time = presentation.time;
+    const situation = applyCast(currentSituation, cast);
+    const time = presentationTime;
 
     if (atNotify || isSuspectChat) {
       inflightNodeRef.current = nodeId;
@@ -136,7 +139,7 @@ export function WhatsAppFamiliarSession() {
     revealedNodeRef.current = nodeId;
     setRevealPhase('visible');
     return undefined;
-  }, [started, current?.node.id, atNotify, isSuspectChat]);
+  }, [started, currentNodeId, currentSituation, presentationTime, atNotify, isSuspectChat, cast]);
 
   const handleStart = () => {
     if (!isCastReady(draft)) {

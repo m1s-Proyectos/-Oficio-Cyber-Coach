@@ -39,3 +39,19 @@ export function sanitizeShopCast(input: ShopCast): ShopCast {
     shopperName: sanitizeField(input.shopperName, DEFAULT_SHOP_CAST.shopperName),
   };
 }
+
+/** El participante es quien busca. No se pide otro nombre. */
+export function isShopCastReady(input: ShopCast): boolean {
+  const trimmed = input.learner.trim();
+  return trimmed.length > 0 && trimmed.length <= 40;
+}
+
+export function shopCastFromLearner(learner: string): ShopCast {
+  const name = sanitizeField(learner, DEFAULT_SHOP_CAST.learner);
+  return { learner: name, shopperName: name };
+}
+
+export const EMPTY_SHOP_DRAFT: ShopCast = {
+  learner: '',
+  shopperName: '',
+};

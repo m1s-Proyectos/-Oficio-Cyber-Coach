@@ -210,6 +210,19 @@ describe('AdviceNarrationController', () => {
     expect(controller.snapshot().message).toContain('configuración');
   });
 
+  it('un rechazo de red no deja la narración cargando', async () => {
+    const { host } = createHost(async () => {
+      throw new Error('network failure');
+    });
+    const controller = new AdviceNarrationController(host, () => undefined);
+    controller.setAdvice('codigo-verificacion:otp-request');
+    controller.play();
+    await vi.waitFor(() => {
+      expect(controller.snapshot().status).toBe('unavailable');
+    });
+    expect(controller.snapshot().message).toContain('texto sigue disponible');
+  });
+
   it('audio.play rechazado pasa a blocked y replay reintenta', async () => {
     let allowPlay = false;
     const { host, players } = createHost(
@@ -257,7 +270,7 @@ describe('AdviceNarrationController', () => {
     controller.setAdvice(null);
     expect(controller.snapshot().status).toBe('idle');
     controller.dispose();
-    expect(revoked).toContain('blob:advice');
+    expect(revoked).toEqual(['blob:advice']);
   });
 
   it('reutiliza la caché de sesión sin segundo fetch', async () => {

@@ -53,6 +53,13 @@ describe('catálogo de consejos', () => {
       expect(text.includes('{{')).toBe(false);
     }
   });
+
+  it('incluye los consejos añadidos para B', () => {
+    expect(isVoiceAdviceId('tienda-iphone:known-channel')).toBe(true);
+    expect(isVoiceAdviceId('tienda-iphone:leave-check')).toBe(true);
+    expect(resolveAdviceText('tienda-iphone:known-channel')).toContain('precio conocido');
+    expect(resolveAdviceText('tienda-iphone:leave-check')).toContain('Salir evitó');
+  });
 });
 
 describe('clave de caché', () => {

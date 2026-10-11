@@ -26,6 +26,10 @@ export const VOICE_ADVICE_CATALOG = {
   'tienda-iphone:extra-fee':
     'Verifica el motivo por un canal oficial, no solo el chat de la tienda.',
   'tienda-iphone:store-vanish': 'Suele llegar tarde; conviene contener el daño y no pagar más.',
+  'tienda-iphone:known-channel':
+    'Un precio conocido no sustituye confirmar el comercio por un canal que ya tenías.',
+  'tienda-iphone:leave-check':
+    'Salir evitó adelantar dinero; mira quién vende y qué dicen fuera del anuncio.',
   'empleo-pago-previo:advance-fee': 'Desconfía de cualquier oferta que pida dinero inicial.',
   'empleo-pago-previo:high-salary': 'Un sueldo alto no prueba que la oferta sea real.',
   'empleo-pago-previo:generic-domain': 'Investiga la empresa por un canal independiente.',
