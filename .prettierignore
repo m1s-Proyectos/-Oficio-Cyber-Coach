@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+.vite
+.cache
+*.tsbuildinfo
+coverage
+
+# Technical direction documents: do not reformat automatically.
+PLAN-MAESTRO.md
+docs/
+
+# Generador externo de referencia. No formatea ni se ejecuta.
+setup.js
+
+# Copias de seguridad locales; no se formatean.
+backups/
