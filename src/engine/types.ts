@@ -57,6 +57,12 @@ export interface RiskSignal {
 
 export interface EvaluationRule {
   points: RubricBreakdown;
+  /**
+   * Hito educativo único (rúbrica A–E aprobada, Fase 04/05).
+   * Si está presente, los `points` solo se acreditan la primera vez que aparece
+   * en `state.choices`. Sin hito, los puntos se suman en cada elección (p. ej. fixture).
+   */
+  milestoneId?: string;
   recognizedSignalIds: readonly string[];
   overlookedSignalIds: readonly string[];
   leavesRoomToCorrect: boolean;

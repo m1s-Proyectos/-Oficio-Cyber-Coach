@@ -44,6 +44,7 @@ export const MINIMAL_SCENARIO: ScenarioDefinition = {
           nextNodeId: 'second-ask',
           evaluation: {
             points: { recognition: 2, verification: 0, containment: 0, recovery: 0 },
+            milestoneId: 'fixture-send-now',
             recognizedSignalIds: [],
             overlookedSignalIds: ['urgency', 'same-channel'],
             leavesRoomToCorrect: true,
@@ -60,6 +61,7 @@ export const MINIMAL_SCENARIO: ScenarioDefinition = {
           nextNodeId: 'safe-end',
           evaluation: {
             points: { recognition: 12, verification: 15, containment: 15, recovery: 8 },
+            milestoneId: 'fixture-verify-first',
             recognizedSignalIds: ['urgency', 'same-channel'],
             overlookedSignalIds: [],
             leavesRoomToCorrect: false,
@@ -86,6 +88,7 @@ export const MINIMAL_SCENARIO: ScenarioDefinition = {
           nextNodeId: 'risk-end',
           evaluation: {
             points: { recognition: 0, verification: 0, containment: 0, recovery: 2 },
+            milestoneId: 'fixture-send-again',
             recognizedSignalIds: [],
             overlookedSignalIds: ['urgency', 'same-channel'],
             leavesRoomToCorrect: false,
@@ -102,6 +105,7 @@ export const MINIMAL_SCENARIO: ScenarioDefinition = {
           nextNodeId: 'recover-end',
           evaluation: {
             points: { recognition: 10, verification: 12, containment: 10, recovery: 15 },
+            milestoneId: 'fixture-stop-and-check',
             recognizedSignalIds: ['urgency', 'same-channel'],
             overlookedSignalIds: [],
             leavesRoomToCorrect: false,

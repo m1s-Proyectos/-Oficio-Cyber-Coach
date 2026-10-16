@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EMPLEO_PAGO_PREVIO_PRESENTATION } from '../content/empleoPagoPrevio/presentation';
 import { EMPLEO_PAGO_PREVIO_SCENARIO } from '../content/empleoPagoPrevio/definition';
-import { UNOFFICIAL_ZERO_POINTS } from '../content/empleoPagoPrevio/zeroPoints';
 import { choose, complete, start, validateDefinition } from '../engine';
 import type { SessionState } from '../engine';
 
@@ -29,21 +28,18 @@ describe('empleo-pago-previo', () => {
     }
   });
 
-  it('no asigna puntos oficiales', () => {
-    for (const node of Object.values(EMPLEO_PAGO_PREVIO_SCENARIO.nodes)) {
-      for (const option of node.options) {
-        expect(option.evaluation.points).toEqual(UNOFFICIAL_ZERO_POINTS);
-      }
-    }
-  });
-
-  it('ruta segura: detectar el cobro y no pagar', () => {
+  it('ruta segura: detectar el cobro y no pagar con nota oficial', () => {
     let state = mustChoose(mustStart(), 'open-offer');
     state = mustChoose(state, 'mark-fee');
     state = mustChoose(state, 'refuse-pay');
     expect(state.currentNodeId).toBe('t_safe');
     const closed = complete(state, EMPLEO_PAGO_PREVIO_SCENARIO);
     expect(closed.ok).toBe(true);
+    if (closed.ok) {
+      // spot-domain + spot-advance-fee + refuse-fee
+      expect(closed.value.result.total).toBe(45);
+      expect(closed.value.result.breakdown.containment).toBe(20);
+    }
   });
 
   it('ruta de riesgo: pagar $35 desde la oferta', () => {

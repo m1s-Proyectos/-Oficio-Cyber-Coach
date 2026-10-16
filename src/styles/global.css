@@ -7,6 +7,7 @@
 @import './tokens.css';
 @import './components.css';
 @import './phone.css';
+@import './quick-challenges.css';
 
 *,
 *::before,

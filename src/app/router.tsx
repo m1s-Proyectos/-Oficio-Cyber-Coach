@@ -31,7 +31,14 @@ import {
  * plan maestro, sin tocar las pantallas.
  */
 
-export type RouteName = 'home' | 'simulation' | 'result' | 'notFound';
+export type RouteName =
+  | 'home'
+  | 'dashboard'
+  | 'challengeCatalog'
+  | 'challenge'
+  | 'simulation'
+  | 'result'
+  | 'notFound';
 
 interface RouteDefinition {
   readonly pattern: string;
@@ -42,6 +49,9 @@ type RouteSegment = { kind: 'literal'; value: string } | { kind: 'param'; name: 
 
 const DEFINITIONS: Readonly<Record<Exclude<RouteName, 'notFound'>, RouteDefinition>> = {
   home: makeDefinition('/'),
+  dashboard: makeDefinition('/panel'),
+  challengeCatalog: makeDefinition('/retos'),
+  challenge: makeDefinition('/retos/:slug'),
   simulation: makeDefinition('/simulaciones/:slug'),
   result: makeDefinition('/simulaciones/:slug/resultado'),
 };

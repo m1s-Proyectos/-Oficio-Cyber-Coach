@@ -1,8 +1,7 @@
 import type { RubricBreakdown } from '../../engine';
 
 /**
- * Ceros técnicos para satisfacer `EvaluationRule.points`.
- * No son puntuación oficial. D3 sigue pendiente.
+ * Ceros de compatibilidad. La puntuación oficial vive en `scoring.ts`.
  */
 export const UNOFFICIAL_ZERO_POINTS: RubricBreakdown = {
   recognition: 0,

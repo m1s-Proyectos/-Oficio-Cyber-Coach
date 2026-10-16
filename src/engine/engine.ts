@@ -142,6 +142,7 @@ export function evaluate(state: SessionState, definition: ScenarioDefinition): S
   };
   const attended = new Set<string>();
   const overlooked = new Set<string>();
+  const awardedMilestones = new Set<string>();
 
   for (const choice of state.choices) {
     const node = definition.nodes[choice.nodeId];
@@ -149,14 +150,24 @@ export function evaluate(state: SessionState, definition: ScenarioDefinition): S
     if (!option) {
       continue;
     }
-    for (const dimension of RUBRIC_DIMENSIONS) {
-      breakdown[dimension] += option.evaluation.points[dimension];
-    }
+
     for (const signalId of option.evaluation.recognizedSignalIds) {
       attended.add(signalId);
     }
     for (const signalId of option.evaluation.overlookedSignalIds) {
       overlooked.add(signalId);
+    }
+
+    const milestoneId = option.evaluation.milestoneId;
+    if (typeof milestoneId === 'string' && milestoneId.length > 0) {
+      if (awardedMilestones.has(milestoneId)) {
+        continue;
+      }
+      awardedMilestones.add(milestoneId);
+    }
+
+    for (const dimension of RUBRIC_DIMENSIONS) {
+      breakdown[dimension] += option.evaluation.points[dimension];
     }
   }
 

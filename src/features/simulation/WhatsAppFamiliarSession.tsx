@@ -13,6 +13,7 @@ import {
 } from '../../content';
 import { getCurrent, type Feedback, type SessionState } from '../../engine';
 import { EducationalAdvice } from './EducationalAdvice';
+import { IncompleteExerciseNotice, OfficialScorePanel } from './OfficialScorePanel';
 import { ChatThread } from './phone/ChatThread';
 import { PhoneShell } from './phone/PhoneShell';
 import {
@@ -334,9 +335,11 @@ export function WhatsAppFamiliarSession() {
                 <div className="phone-result">
                   <h2>Cierre del ejercicio</h2>
                   <p>{bind(current.node.situation)}</p>
-                  <p>
-                    No hay calificación oficial. D3 sigue pendiente. Este cierre no es un puntaje.
-                  </p>
+                  {state.status === 'completed' && state.result ? (
+                    <OfficialScorePanel result={state.result} />
+                  ) : (
+                    <IncompleteExerciseNotice />
+                  )}
                 </div>
               ) : null}
 

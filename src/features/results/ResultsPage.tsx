@@ -42,7 +42,7 @@ export function ResultsPage() {
         <StatusMessage
           kind="empty"
           title="El cierre vive en el teléfono simulado"
-          description={`La Simulación ${which} no muestra una calificación oficial (D3 pendiente). Vuelve al reproductor para ver el final educativo de tu rama. La sesión no se guarda.`}
+          description={`La nota oficial de la Simulación ${which} se muestra al cerrar un final en el reproductor. Si saliste antes, el ejercicio queda incompleto y no hay nota. La sesión aún no se guarda en el servidor.`}
           action={
             <Button as="link" to="simulation" params={{ slug }} variant="secondary">
               {`Abrir la simulación ${which}`}

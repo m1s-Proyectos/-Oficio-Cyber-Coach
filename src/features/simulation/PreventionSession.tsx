@@ -12,6 +12,7 @@ import {
   type SessionState,
 } from '../../engine';
 import { EducationalAdvice } from './EducationalAdvice';
+import { IncompleteExerciseNotice, OfficialScorePanel } from './OfficialScorePanel';
 import { PhoneShell } from './phone/PhoneShell';
 import {
   createBoundSessionController,
@@ -169,7 +170,11 @@ export function PreventionSession({ pack }: { pack: PreventionPack }) {
                 <div className="phone-result">
                   <h2>Cierre del ejercicio</h2>
                   <p>{bind(current.node.situation)}</p>
-                  <p>No hay calificación oficial. D3 sigue pendiente.</p>
+                  {state.status === 'completed' && state.result ? (
+                    <OfficialScorePanel result={state.result} />
+                  ) : (
+                    <IncompleteExerciseNotice />
+                  )}
                 </div>
               ) : null}
 

@@ -36,3 +36,4 @@ export {
 } from './supuestoJefe';
 export { LOCAL_PLAYABLE_SLUGS, LOCAL_PREVENTION_CATALOG } from './localCatalog';
 export { getPreventionPack, PREVENTION_PACKS } from './preventionPacks';
+export { challenges, paths, type QuickChallenge } from './quickChallenges';

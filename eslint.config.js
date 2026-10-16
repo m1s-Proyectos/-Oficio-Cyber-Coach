@@ -18,6 +18,7 @@ export default tseslint.config(
       'convex/_generated/**',
       'setup.js',
       'backups/**',
+      'NoCaigas-OFICIO-Cyber-Coach/**',
     ],
   },
   js.configs.recommended,

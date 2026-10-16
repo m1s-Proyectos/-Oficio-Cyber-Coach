@@ -1,5 +1,6 @@
-import { HomePage } from '../features/home';
+import { DashboardPage, HomePage } from '../features/home';
 import { NotFoundPage } from '../features/not-found/NotFoundPage';
+import { ChallengeIndexPage, QuickChallengePage } from '../features/quick-challenges';
 import { ResultsPage } from '../features/results';
 import { SimulationPage } from '../features/simulation';
 import { ConvexClientProvider } from './ConvexClientProvider';
@@ -15,8 +16,8 @@ import { RouterProvider, Routes } from './router';
  * - Aplicar el layout global (cabecera + main + pie, con enlace de salto).
  * - Delegar la pantalla actual al diccionario de rutas.
  *
- * NO contiene lógica de negocio: la evaluación de decisiones y el cálculo
- * de puntajes llegan en las Fases 04 a 07.
+ * El panel (`#/panel`) es gamificación local de retos rápidos; no altera la
+ * portada ni la nota educativa oficial de las simulaciones A–E (Fase 04+).
  */
 export function App() {
   return (
@@ -26,6 +27,9 @@ export function App() {
           <Routes
             elements={{
               home: <HomePage />,
+              dashboard: <DashboardPage />,
+              challengeCatalog: <ChallengeIndexPage />,
+              challenge: <QuickChallengePage />,
               simulation: <SimulationPage />,
               result: <ResultsPage />,
               notFound: <NotFoundPage />,

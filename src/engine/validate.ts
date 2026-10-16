@@ -69,6 +69,15 @@ function nodeErrors(definition: ScenarioDefinition, node: ScenarioNode): string[
       }
     }
 
+    const milestoneId = option.evaluation.milestoneId;
+    if (milestoneId !== undefined) {
+      if (typeof milestoneId !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(milestoneId)) {
+        errors.push(
+          `La opción "${option.id}" tiene milestoneId inválido (${String(milestoneId)}).`,
+        );
+      }
+    }
+
     for (const signalId of [
       ...option.evaluation.recognizedSignalIds,
       ...option.evaluation.overlookedSignalIds,

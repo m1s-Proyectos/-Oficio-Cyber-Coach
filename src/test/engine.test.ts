@@ -277,4 +277,63 @@ describe('evaluate, complete y recommend', () => {
     expect(texts).toEqual(result.recommendations);
     expect(texts.every((text) => text.length > 0)).toBe(true);
   });
+
+  it('acredita un milestoneId solo la primera vez', () => {
+    const definition = mutate((item) => {
+      const startNode = item.nodes.start;
+      const secondAsk = item.nodes['second-ask'];
+      if (!startNode || !secondAsk) {
+        return item;
+      }
+      const repeatVerify = {
+        id: 'repeat-verify',
+        label: 'Verificar de nuevo (mismo hito).',
+        nextNodeId: 'recover-end',
+        evaluation: {
+          points: { recognition: 12, verification: 15, containment: 15, recovery: 8 },
+          milestoneId: 'fixture-verify-first',
+          recognizedSignalIds: ['urgency', 'same-channel'] as const,
+          overlookedSignalIds: [] as const,
+          leavesRoomToCorrect: false,
+        },
+        feedback: {
+          explanation: 'Mismo hito educativo.',
+          recommendation: 'No debe sumar dos veces.',
+        },
+      };
+      return {
+        ...item,
+        nodes: {
+          ...item.nodes,
+          'second-ask': {
+            ...secondAsk,
+            options: [...secondAsk.options, repeatVerify],
+          },
+        },
+      };
+    });
+
+    // Historial sintético: dos opciones distintas, mismo milestoneId.
+    const scored = evaluate(
+      {
+        scenarioSlug: definition.slug,
+        scenarioVersion: definition.version,
+        status: 'active',
+        currentNodeId: 'recover-end',
+        choices: [
+          { nodeId: 'start', optionId: 'verify-first' },
+          { nodeId: 'second-ask', optionId: 'repeat-verify' },
+        ],
+        result: null,
+      },
+      definition,
+    );
+    expect(scored.breakdown).toEqual({
+      recognition: 12,
+      verification: 15,
+      containment: 15,
+      recovery: 8,
+    });
+    expect(scored.total).toBe(50);
+  });
 });

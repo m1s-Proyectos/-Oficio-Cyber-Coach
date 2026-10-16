@@ -757,6 +757,33 @@
   font-size: 0.82rem;
 }
 
+.official-score {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.official-score__total {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.official-score__dims {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--color-ink-soft);
+}
+
+.official-score__note,
+.official-score__incomplete {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .phone-actions button:hover {
     transform: none;
