@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { applyShopCast, DEFAULT_SHOP_CAST } from '../content/tiendaCast';
 import { TIENDA_IPHONE_SCENARIO } from '../content/tiendaIphone/definition';
 import { TIENDA_IPHONE_PRESENTATION } from '../content/tiendaIphone/presentation';
-import { UNOFFICIAL_ZERO_POINTS } from '../content/tiendaIphone/zeroPoints';
 import { WHATSAPP_FAMILIAR_SCENARIO } from '../content/whatsappFamiliar/definition';
 import { choose, complete, start, validateDefinition } from '../engine';
 import type { SessionState } from '../engine';
@@ -53,10 +52,13 @@ describe('guion B tienda-iphone', () => {
     }
   });
 
-  it('no asigna puntos oficiales', () => {
+  it('declara hitos en opciones con puntos positivos', () => {
     for (const node of Object.values(TIENDA_IPHONE_SCENARIO.nodes)) {
       for (const option of node.options) {
-        expect(option.evaluation.points).toEqual(UNOFFICIAL_ZERO_POINTS);
+        const hasPoints = Object.values(option.evaluation.points).some((value) => value > 0);
+        if (hasPoints) {
+          expect(option.evaluation.milestoneId).toMatch(/^[a-z][a-z0-9-]{0,63}$/);
+        }
       }
     }
   });
@@ -92,7 +94,8 @@ describe('guion B tienda-iphone', () => {
     const closed = complete(state, TIENDA_IPHONE_SCENARIO);
     expect(closed.ok).toBe(true);
     if (closed.ok) {
-      expect(closed.value.result.total).toBe(0);
+      expect(closed.value.result.total).toBeGreaterThan(0);
+      expect(closed.value.result.breakdown.recovery).toBeGreaterThan(0);
     }
   });
 

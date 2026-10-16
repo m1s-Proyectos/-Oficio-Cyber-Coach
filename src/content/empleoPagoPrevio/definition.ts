@@ -1,5 +1,5 @@
 import type { ScenarioDefinition, ScenarioNode, ScenarioOption } from '../../engine';
-import { UNOFFICIAL_ZERO_POINTS } from './zeroPoints';
+import { scoreForEmpleoOption } from './scoring';
 
 export const EMPLEO_PAGO_PREVIO_SLUG = 'empleo-pago-previo';
 
@@ -23,15 +23,17 @@ function option(
   explanation: string,
   recommendation: string,
 ): ScenarioOption {
+  const scored = scoreForEmpleoOption(id);
   return {
     id,
     label,
     nextNodeId,
     evaluation: {
-      points: UNOFFICIAL_ZERO_POINTS,
+      points: scored.points,
       recognizedSignalIds,
       overlookedSignalIds,
       leavesRoomToCorrect,
+      ...(scored.milestoneId !== undefined ? { milestoneId: scored.milestoneId } : {}),
     },
     feedback: { explanation, recommendation },
   };

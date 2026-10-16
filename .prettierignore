@@ -16,3 +16,6 @@ setup.js
 
 # Copias de seguridad locales; no se formatean.
 backups/
+
+# Réplica de referencia anidada; no se formatea desde el proyecto original.
+NoCaigas-OFICIO-Cyber-Coach/

@@ -1,5 +1,5 @@
 import type { ScenarioDefinition, ScenarioNode, ScenarioOption } from '../../engine';
-import { UNOFFICIAL_ZERO_POINTS } from './zeroPoints';
+import { scoreForJefeOption } from './scoring';
 
 export const SUPUESTO_JEFE_SLUG = 'supuesto-jefe';
 
@@ -22,15 +22,17 @@ function option(
   explanation: string,
   recommendation: string,
 ): ScenarioOption {
+  const scored = scoreForJefeOption(id);
   return {
     id,
     label,
     nextNodeId,
     evaluation: {
-      points: UNOFFICIAL_ZERO_POINTS,
+      points: scored.points,
       recognizedSignalIds,
       overlookedSignalIds,
       leavesRoomToCorrect,
+      ...(scored.milestoneId !== undefined ? { milestoneId: scored.milestoneId } : {}),
     },
     feedback: { explanation, recommendation },
   };

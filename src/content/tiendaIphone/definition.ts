@@ -1,5 +1,5 @@
 import type { ScenarioDefinition, ScenarioNode, ScenarioOption } from '../../engine';
-import { UNOFFICIAL_ZERO_POINTS } from './zeroPoints';
+import { scoreForTiendaOption } from './scoring';
 
 export const TIENDA_IPHONE_SLUG = 'tienda-iphone';
 
@@ -19,15 +19,17 @@ function option(
   explanation: string,
   recommendation: string,
 ): ScenarioOption {
+  const scored = scoreForTiendaOption(id);
   return {
     id,
     label,
     nextNodeId,
     evaluation: {
-      points: UNOFFICIAL_ZERO_POINTS,
+      points: scored.points,
       recognizedSignalIds,
       overlookedSignalIds,
       leavesRoomToCorrect,
+      ...(scored.milestoneId !== undefined ? { milestoneId: scored.milestoneId } : {}),
     },
     feedback: { explanation, recommendation },
   };

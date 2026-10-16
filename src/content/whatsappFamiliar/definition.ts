@@ -1,5 +1,5 @@
 import type { ScenarioDefinition, ScenarioNode, ScenarioOption } from '../../engine';
-import { UNOFFICIAL_ZERO_POINTS } from './zeroPoints';
+import { scoreForWhatsAppOption } from './scoring';
 
 export const WHATSAPP_FAMILIAR_SLUG = 'whatsapp-familiar';
 
@@ -16,15 +16,17 @@ function option(
   explanation: string,
   recommendation: string,
 ): ScenarioOption {
+  const scored = scoreForWhatsAppOption(id);
   return {
     id,
     label,
     nextNodeId,
     evaluation: {
-      points: UNOFFICIAL_ZERO_POINTS,
+      points: scored.points,
       recognizedSignalIds,
       overlookedSignalIds,
       leavesRoomToCorrect,
+      ...(scored.milestoneId !== undefined ? { milestoneId: scored.milestoneId } : {}),
     },
     feedback: { explanation, recommendation },
   };

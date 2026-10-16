@@ -24,6 +24,12 @@ export function PageHeader() {
             <Link to="home" className="site-nav__link">
               Inicio
             </Link>
+            <Link to="challengeCatalog" className="site-nav__link">
+              Retos
+            </Link>
+            <Link to="dashboard" className="site-nav__link">
+              Panel
+            </Link>
             <Link to="simulation" params={{ slug: 'whatsapp-familiar' }} className="site-nav__link">
               Simulaciones
             </Link>

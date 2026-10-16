@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applyCast, DEFAULT_CAST } from '../content/bindCast';
 import { WHATSAPP_FAMILIAR_SCENARIO } from '../content/whatsappFamiliar/definition';
-import { UNOFFICIAL_ZERO_POINTS } from '../content/whatsappFamiliar/zeroPoints';
-import { choose, complete, start, validateDefinition } from '../engine';
+import { choose, complete, evaluate, start, validateDefinition } from '../engine';
 import type { SessionState } from '../engine';
 
 function mustStart(): SessionState {
@@ -27,11 +26,15 @@ describe('guion A whatsapp-familiar', () => {
     expect(result.ok).toBe(true);
   });
 
-  it('no asigna puntos oficiales', () => {
-    for (const node of Object.values(WHATSAPP_FAMILIAR_SCENARIO.nodes)) {
-      for (const option of node.options) {
-        expect(option.evaluation.points).toEqual(UNOFFICIAL_ZERO_POINTS);
-      }
+  it('declara hitos o ceros en cada opción puntuable', () => {
+    const scored = Object.values(WHATSAPP_FAMILIAR_SCENARIO.nodes).flatMap((node) =>
+      node.options.filter((option) =>
+        Object.values(option.evaluation.points).some((value) => value > 0),
+      ),
+    );
+    expect(scored.length).toBeGreaterThan(0);
+    for (const option of scored) {
+      expect(option.evaluation.milestoneId).toMatch(/^[a-z][a-z0-9-]{0,63}$/);
     }
   });
 
@@ -55,22 +58,32 @@ describe('guion A whatsapp-familiar', () => {
     const closed = complete(state, WHATSAPP_FAMILIAR_SCENARIO);
     expect(closed.ok).toBe(true);
     if (closed.ok) {
-      expect(closed.value.result.total).toBe(0);
+      expect(closed.value.result.total).toBeGreaterThan(0);
+      expect(closed.value.result.total).toBeLessThanOrEqual(100);
       expect(closed.value.state.status).toBe('completed');
     }
   });
 
-  it('permite el ciclo de volver al chat y salir a verificación', () => {
+  it('permite el ciclo de volver al chat y salir a verificación sin inflar hitos', () => {
     let state = mustChoose(mustChoose(mustStart(), 'open-thread'), 'verify-now');
     expect(state.currentNodeId).toBe('n_call');
     state = mustChoose(state, 'back-to-suspect-chat');
     expect(state.currentNodeId).toBe('n_chat');
     state = mustChoose(state, 'verify-after-chat');
     expect(state.currentNodeId).toBe('n_call');
+    const afterLoop = evaluate(state, WHATSAPP_FAMILIAR_SCENARIO);
     state = mustChoose(state, 'contact-other');
     expect(state.currentNodeId).toBe('n_other');
     state = mustChoose(state, 'warn-and-end');
     expect(state.currentNodeId).toBe('t_safe');
+    const closed = complete(state, WHATSAPP_FAMILIAR_SCENARIO);
+    expect(closed.ok).toBe(true);
+    if (closed.ok) {
+      // open-thread + verify-independent (una vez) + confirm-other + refuse-transfer
+      expect(closed.value.result.breakdown.verification).toBe(25);
+      expect(closed.value.result.total).toBe(65);
+      expect(afterLoop.breakdown.verification).toBe(15);
+    }
   });
 
   it('distingue pausar y bloquear', () => {

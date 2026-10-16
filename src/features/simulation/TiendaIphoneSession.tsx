@@ -13,6 +13,7 @@ import {
 import { TIENDA_IPHONE_SCENARIO } from '../../content/tiendaIphone';
 import { getCurrent, type Feedback, type SessionState } from '../../engine';
 import { EducationalAdvice } from './EducationalAdvice';
+import { IncompleteExerciseNotice, OfficialScorePanel } from './OfficialScorePanel';
 import { FacebookListing } from './phone/FacebookListing';
 import { PhoneShell } from './phone/PhoneShell';
 import { SearchBrowser } from './phone/SearchBrowser';
@@ -370,9 +371,11 @@ export function TiendaIphoneSession() {
               ) : null}
 
               {current && screen === 'decided' && current.node.isTerminal ? (
-                <p className="search-browser__empty">
-                  No hay calificación oficial. D3 sigue pendiente. La compra no se realizó.
-                </p>
+                state.status === 'completed' && state.result ? (
+                  <OfficialScorePanel result={state.result} />
+                ) : (
+                  <IncompleteExerciseNotice />
+                )
               ) : null}
             </PhoneShell>
           </div>
