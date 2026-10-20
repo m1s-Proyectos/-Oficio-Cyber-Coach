@@ -1,7 +1,7 @@
 import { Alert } from '../../components/Alert';
-import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import { SectionHeading } from '../../components/SectionHeading';
+import { HeroPhoneArt } from './HeroPhoneArt';
 import { PublishedCatalog } from './PublishedCatalog';
 
 const PRINCIPLES = [
@@ -31,24 +31,29 @@ export function HomePage() {
   return (
     <>
       <Container size="wide">
-        <section className="hero" aria-labelledby="hero-title">
-          <p className="hero__eyebrow">
-            Antes de enviar dinero, aprende a verificar
-          </p>
-          <h1 id="hero-title" className="hero__title">
-            Entrena decisiones seguras ante fraudes digitales.
-          </h1>
-          <p className="hero__lead">
-            OFICIO Cyber Coach presenta escenarios ficticios interactivos para que practiques cómo
-            reconocer presiones, pedir una segunda señal y detenerte a tiempo. No es una guía legal
-            ni una promesa de recuperación: es un espacio de aprendizaje.
-          </p>
-          <div className="hero__disclaimer">
-            <Alert tone="warning" title="Historias ficticias con fines educativos">
-              Los personajes, importes, plazos y conversaciones son parte del ejercicio. No
-              describen un caso real ni predicen cómo ocurrirán todos los fraudes.
-            </Alert>
+        <section className="hero hero--with-art" aria-labelledby="hero-title">
+          <div className="hero__copy">
+            <p className="hero__eyebrow">
+              Antes de enviar dinero, aprende a verificar
+            </p>
+            <h1 id="hero-title" className="hero__title">
+              Internet está lleno de trampas. Aprende a reconocerlas.
+            </h1>
+            <div className="hero__lead-block">
+              <p className="hero__lead">
+                OFICIO Cyber Coach presenta escenarios ficticios interactivos para que practiques cómo
+                reconocer presiones, pedir una segunda señal y detenerte a tiempo. No es una guía legal
+                ni una promesa de recuperación: es un espacio de aprendizaje.
+              </p>
+            </div>
+            <div className="hero__disclaimer">
+              <Alert tone="warning" title="Historias ficticias con fines educativos">
+                Los personajes, importes, plazos y conversaciones son parte del ejercicio. No
+                describen un caso real ni predicen cómo ocurrirán todos los fraudes.
+              </Alert>
+            </div>
           </div>
+          <HeroPhoneArt />
         </section>
       </Container>
 
@@ -80,23 +85,6 @@ export function HomePage() {
               </article>
             ))}
           </div>
-        </section>
-      </Container>
-
-      <Container size="wide">
-        <section aria-labelledby="status-title">
-          <Alert tone="info" title="Estado real del prototipo">
-            <p>
-              A y B se anuncian desde Convex. Tres escenarios de prevención se cargan en el cliente
-              y no se han sembrado en remoto. El motor corre en memoria. Sin puntaje oficial (D3
-              pendiente).
-            </p>
-            <p>
-              <Button as="link" to="simulation" params={{ slug: 'fixture-motor' }} variant="ghost">
-                Probar el fixture del motor
-              </Button>
-            </p>
-          </Alert>
         </section>
       </Container>
     </>
