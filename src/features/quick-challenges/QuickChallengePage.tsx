@@ -140,7 +140,7 @@ export function QuickChallengePage() {
               </p>
             ) : (
               <p className="quick-lesson__saved">
-                Has ganado {correct ? 100 : 60} XP. Tu progreso se guarda en este navegador.
+                Has ganado {correct ? 100 : 60} XP.
               </p>
             )}
             <div className="row">

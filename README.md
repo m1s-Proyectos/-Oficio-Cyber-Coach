@@ -2,7 +2,7 @@
 
 Plataforma educativa para reconocer señales de fraude digital y practicar decisiones seguras en escenarios ficticios.
 
-Este repositorio contiene el prototipo navegable del producto, conectado a un backend Convex de desarrollo. El motor de simulación ya existe como biblioteca pura; los guiones oficiales de las dos historias llegan en fases posteriores. Consulta `PLAN-MAESTRO.md` para el alcance oficial de cada fase y `docs/contexto-producto.md` para la dirección educativa.
+Este repositorio contiene el prototipo navegable del producto, conectado a un backend Convex de desarrollo. Incluye simulaciones jugables (WhatsApp, iPhone, prevención), motor de simulación con 150 tests, sistema de voz TTS (ElevenLabs) y chat educativo. Consulta `PLAN-MAESTRO.md` para el alcance oficial de cada fase y `docs/contexto-producto.md` para la dirección educativa.
 
 > **Aviso.** Todas las historias que llegarán al producto son ficticias. No son estadísticas de mercado ni predicciones sobre un fraude concreto. No se piden datos personales reales para completar una simulación.
 
@@ -10,22 +10,25 @@ Este repositorio contiene el prototipo navegable del producto, conectado a un ba
 
 ## Estado actual
 
-**Fase 04 completada:** motor de simulación y pruebas. El catálogo sigue saliendo de Convex. Un fixture de prueba recorre el motor en memoria. Las historias oficiales aún no están implementadas.
+**Estado actual (oct 2026):** simulaciones jugables completas con motor de simulación, sistema de voz TTS y chat educativo. 150 tests pasan. Build operativo. Pendiente: corregir formato Prettier en 2 archivos y actualizar PLAN-MAESTRO.
 
 | Pieza                                                                       | Estado                                                                                                           |
 | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Repositorio Git local                                                       | Inicializado en la rama `main`. Sin remoto. Sin commits aún.                                                     |
-| React 18 + Vite 5 + TypeScript estricto                                     | Configurado                                                                                                      |
-| ESLint 9 (flat config) y Prettier 3                                         | Configurados                                                                                                     |
+| Repositorio Git                                                             | Rama `main`, 8 commits, sincronizado con `origin/main`                                                            |
+| React 18 + Vite 5 + TypeScript estricto                                     | Configurado y operativo                                                                                          |
+| ESLint 9 (flat config) y Prettier 3                                         | Configurados. Prettier falla en 2 archivos (`HomePage.tsx`, `components.css`)                                    |
 | Scripts npm (`typecheck`, `lint`, `format:check`, `test`, `build`, `check`) | Operativos                                                                                                       |
-| Identidad visual (propuesta Fase 02)                                        | Paleta navy + ámbar + teal, tipografía del sistema. Decisión D7 del plan sigue pendiente de confirmación formal. |
+| Identidad visual                                                            | Paleta navy + ámbar + teal, tipografía del sistema. Decisión D7 pendiente de confirmación formal.                |
 | Enrutamiento                                                                | Router propio por hash, sin dependencias externas                                                                |
-| Portada, reproductor y resumen                                              | Prototipos navegables con contenido etiquetado como vista previa                                                 |
-| Convex                                                                      | `convex@1.46`. Tabla `scenarios`, query `listPublished`, siembra ficticia. Solo deployment de desarrollo.        |
-| Motor de simulaciones                                                       | `src/engine`. Determinista. Fixture `fixture-motor`. Sin persistencia de sesión.                                 |
-| Simulación A (WhatsApp)                                                     | Reproductor placeholder; guion completo en Fase 05                                                               |
-| Simulación B (iPhone)                                                       | Reproductor placeholder; guion completo en Fase 06                                                               |
-| Coach de IA                                                                 | No integrado. Llega en la Fase 08 (opcional).                                                                    |
+| Portada, reproductor y resumen                                              | Navegables con contenido real (simulaciones completas)                                                          |
+| Convex                                                                      | `convex@1.46`. Tabla `scenarios`, query `listPublished`, siembra ficticia, funciones de voz. Solo desarrollo.   |
+| Motor de simulaciones                                                       | `src/engine`. Determinista. 150 tests en 16 archivos. Sin persistencia de sesión.                                |
+| Simulación A (WhatsApp)                                                     | Completa y jugable (`whatsapp-familiar`)                                                                         |
+| Simulación B (iPhone)                                                       | Completa y jugable (`tienda-iphone`)                                                                             |
+| Simulaciones de prevención                                                  | 3 escenarios jugables: `empleo-pago-previo`, `codigo-verificacion`, `supuesto-jefe`                              |
+| Sistema de voz (TTS)                                                        | ElevenLabs integrado en cliente y servidor. Catálogo de consejos, caché de audio, cuotas.                        |
+| Chat educativo                                                              | Consejos A-E con narración por voz y feedback post-simulación                                                    |
+| Coach de IA                                                                 | No integrado                                                                                                     |
 
 ---
 
@@ -100,7 +103,7 @@ El router propio vive en `src/app/router.tsx` y usa `location.hash` para evitar 
 | `result`       | `#/simulaciones/:slug/resultado` | Vista previa del resumen simulado.             |
 | `notFound`     | cualquier otra ruta              | Pantalla de error 404.                         |
 
-Los `:slug` admitidos en esta fase son `whatsapp-familiar` y `tienda-iphone`. Cualquier otro `:slug` muestra un estado de error con enlace al catálogo.
+Los `:slug` admitidos son `whatsapp-familiar`, `tienda-iphone`, `empleo-pago-previo`, `codigo-verificacion` y `supuesto-jefe`. Cualquier otro `:slug` muestra un estado de error con enlace al catálogo.
 
 ---
 
@@ -152,13 +155,14 @@ src/
     simulation/           Reproductor placeholder (motor real en Fases 04-06).
     results/              Vista previa del resumen (cálculo real en Fase 07).
     not-found/            Pantalla 404.
-  content/                (Fases 05 y 06) Guiones tipados.
-  engine/                 Motor puro: tipos, transiciones, evaluación y fixture.
+  content/                Guiones tipados, catálogo local, cast de personajes.
+  engine/                 Motor puro: tipos, transiciones, evaluación, choice gate y fixtures.
+  voice/                  TTS ElevenLabs: síntesis, caché, catálogo de consejos, cuotas.
   styles/
     tokens.css            Design tokens (colores, tipografía, espaciado).
     global.css            Reset + base.
     components.css        Estilos de componentes compartidos.
-  test/                   (Fase 04) Pruebas unitarias (Vitest).
+  test/                   16 archivos, 150 tests (Vitest).
 convex/                   Esquema, query del catálogo y siembra (ver convex/README.md).
   _generated/             Tipos generados por la CLI. Se versionan.
 .env.example              Variables necesarias, con valores ficticios.

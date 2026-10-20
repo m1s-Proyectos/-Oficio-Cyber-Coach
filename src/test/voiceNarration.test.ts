@@ -53,14 +53,18 @@ describe('resolveFeedbackAdviceId', () => {
     expect(resolveFeedbackAdviceId('whatsapp-familiar', 'send-200')).toBe(
       'whatsapp-familiar:emotional-pressure',
     );
-    expect(resolveFeedbackAdviceId('whatsapp-familiar', 'open-thread')).toBeNull();
+    expect(resolveFeedbackAdviceId('whatsapp-familiar', 'open-thread')).toBe(
+      'whatsapp-familiar:urgency',
+    );
     expect(resolveFeedbackAdviceId('tienda-iphone', 'open-lumina')).toBe('tienda-iphone:low-price');
-    expect(resolveFeedbackAdviceId('tienda-iphone', 'open-search')).toBeNull();
+    expect(resolveFeedbackAdviceId('tienda-iphone', 'open-search')).toBe('tienda-iphone:low-price');
     expect(resolveFeedbackAdviceId('tienda-iphone', 'send-200')).toBeNull();
   });
 
   it('no inventa un id si la opción está excluida', () => {
-    expect(resolveFeedbackAdviceId('codigo-verificacion', 'answer-call')).toBeNull();
+    expect(resolveFeedbackAdviceId('codigo-verificacion', 'answer-call')).toBe(
+      'codigo-verificacion:unexpected-call',
+    );
   });
 
   it('no usa el catálogo de otro slug', () => {

@@ -1,5 +1,4 @@
 import { Link } from '../../app/router';
-import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import { SectionHeading } from '../../components/SectionHeading';
@@ -12,18 +11,10 @@ export function ChallengeIndexPage() {
 
   return (
     <Container size="wide">
-      <SectionHeading
-        eyebrow="Retos rápidos"
-        title="Elige qué quieres practicar"
-        subtitle="Lecciones breves, independientes de las simulaciones A–E. El progreso se guarda solo en este navegador."
-      />
-      <Alert tone="info" title="Progreso motivacional (local)">
-        El XP y los logros viven en <code>oficio-learning-progress-v1</code> y no constituyen la
-        calificación oficial de las simulaciones A–E.
-      </Alert>
+      <SectionHeading eyebrow="Retos rápidos" title="Elige qué quieres practicar" />
       <p className="catalog-count">
         {progress.completedChallenges.length} de {challenges.length} completados ·{' '}
-        {progress.earnedXp} XP motivacional ·{' '}
+        {progress.earnedXp} XP ·{' '}
         <Link to="dashboard" className="text-link">
           Ver panel
         </Link>

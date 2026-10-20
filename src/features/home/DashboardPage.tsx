@@ -1,5 +1,4 @@
 import { Link } from '../../app/router';
-import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { Container } from '../../components/Container';
 import { SectionHeading } from '../../components/SectionHeading';
@@ -38,8 +37,7 @@ export function DashboardPage() {
             <p className="hero__eyebrow">Panel de práctica</p>
             <h1>Tu progreso en los retos rápidos</h1>
             <p>
-              Un poco de práctica hoy puede ayudarte a tomar decisiones más seguras mañana. Este
-              panel solo refleja los retos breves, no las simulaciones inmersivas.
+              Un poco de práctica hoy puede ayudarte a tomar decisiones más seguras mañana.
             </p>
           </div>
           <Button as="link" to="challengeCatalog" variant="secondary">
@@ -47,14 +45,7 @@ export function DashboardPage() {
           </Button>
         </section>
 
-        <Alert tone="info" title="Progreso local y motivacional">
-          El XP, las rachas y los logros se guardan solo en este navegador (
-          <code>oficio-learning-progress-v1</code>
-          ). No son una calificación oficial ni reemplazan la evaluación educativa de las
-          simulaciones A–E, que se definirá aparte.
-        </Alert>
-
-        <section className="dashboard-stats" aria-label="Tu progreso motivacional">
+        <section className="dashboard-stats" aria-label="Tu progreso">
           <div className="dashboard-stat">
             <span className="dashboard-stat__label">Retos completados</span>
             <strong>
@@ -64,7 +55,7 @@ export function DashboardPage() {
             <span className="dashboard-stat__hint">Tu práctica acumulada</span>
           </div>
           <div className="dashboard-stat">
-            <span className="dashboard-stat__label">XP motivacional</span>
+            <span className="dashboard-stat__label">XP</span>
             <strong>{progress.earnedXp}</strong>
             <span className="dashboard-stat__hint">100 / 60 / 0 según el primer intento</span>
           </div>
@@ -175,7 +166,7 @@ export function DashboardPage() {
             id="achievements-title"
             eyebrow="Logros"
             title="Cada práctica cuenta"
-            subtitle="Los logros se desbloquean al completar retos rápidos. Tu avance permanece en este navegador y no forma parte de la nota oficial de A–E."
+            subtitle="Los logros se desbloquean al completar retos rápidos."
           />
           <div className="achievement-row">
             {ACHIEVEMENTS.map((badge) => {

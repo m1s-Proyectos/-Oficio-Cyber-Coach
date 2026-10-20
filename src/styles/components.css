@@ -602,6 +602,17 @@
   padding: var(--space-7) 0 var(--space-6);
 }
 
+.hero--with-art {
+  gap: var(--space-6);
+  align-items: center;
+}
+
+.hero__copy {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
 .hero__eyebrow {
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-eyebrow);
@@ -625,11 +636,222 @@
   font-size: var(--font-size-lg);
   line-height: var(--line-height-snug);
   max-width: 56ch;
+  margin: 0;
+}
+
+.hero__lead-block {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.hero__cta {
+  margin: 0;
 }
 
 .hero__disclaimer {
-  margin-top: var(--space-4);
+  margin-top: 0;
   max-width: 48rem;
+}
+
+/* Ilustración decorativa del hero (independiente de phone.css) ----------- */
+
+.hero-phone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: min(100%, 18rem);
+  min-height: 22rem;
+  isolation: isolate;
+}
+
+.hero-phone__glow {
+  position: absolute;
+  width: 85%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-primary) 28%, transparent),
+    color-mix(in srgb, var(--color-primary) 8%, transparent) 54%,
+    transparent 72%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-phone__float {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  animation: hero-phone-float 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.hero-phone__device {
+  position: relative;
+  width: min(100%, 16.5rem);
+  padding: 0.85rem 0.7rem 0.75rem;
+  border-radius: 2.1rem;
+  border: 7px solid #26383e;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-lg);
+  transform: rotate(-2.5deg);
+}
+
+.hero-phone__notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5.25rem;
+  height: 0.8rem;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: #26383e;
+}
+
+.hero-phone__screen {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1.1rem 0.35rem 0.35rem;
+}
+
+.hero-phone__status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+.hero-phone__app {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hero-phone__app-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 2.35rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.75rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: 1.15rem;
+}
+
+.hero-phone__app strong,
+.hero-phone__card strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink);
+}
+
+.hero-phone__app small,
+.hero-phone__card small {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: var(--color-ink-muted);
+}
+
+.hero-phone__card {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.7rem;
+  border-radius: 0.85rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-phone__card > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 1.7rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.hero-phone__card--alert > span {
+  background: var(--color-alert-soft);
+  color: var(--color-alert);
+}
+
+.hero-phone__card--warn > span {
+  background: var(--color-beacon-soft);
+  color: var(--color-beacon);
+}
+
+.hero-phone__card--safe {
+  background: var(--color-verify-soft);
+  border-color: color-mix(in srgb, var(--color-verify) 28%, var(--color-border));
+}
+
+.hero-phone__card--safe > span {
+  background: color-mix(in srgb, var(--color-verify) 22%, var(--color-surface));
+  color: var(--color-verify);
+}
+
+@keyframes hero-phone-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.65rem);
+  }
+}
+
+@media (min-width: 56rem) {
+  .hero--with-art {
+    grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.85fr);
+    gap: clamp(var(--space-5), 4vw, var(--space-8));
+    align-items: center;
+  }
+
+  .hero-phone {
+    width: min(100%, 19rem);
+    min-height: 26rem;
+    justify-self: end;
+  }
+
+  .hero-phone__device {
+    width: min(100%, 17rem);
+  }
+}
+
+@media (max-width: 35.99rem) {
+  .hero-phone {
+    min-height: 20rem;
+    width: min(100%, 16rem);
+  }
+
+  .hero-phone__device {
+    width: min(100%, 14.5rem);
+    border-width: 6px;
+    border-radius: 1.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-phone__float {
+    animation: none;
+  }
 }
 
 /* Rejilla general y utilidades ------------------------------------------- */

@@ -371,7 +371,7 @@ export function TiendaIphoneSession() {
               ) : null}
 
               {current && screen === 'decided' && current.node.isTerminal ? (
-                state.status === 'completed' && state.result ? (
+                state?.status === 'completed' && state.result ? (
                   <OfficialScorePanel result={state.result} />
                 ) : (
                   <IncompleteExerciseNotice />

@@ -38,9 +38,9 @@ describe('OPTION_VOICE_MAP', () => {
     expect([...mapKeys].sort()).toEqual([...realKeys].sort());
   });
 
-  it('tiene 91 IDs de catálogo y 23 exclusiones explícitas', () => {
-    expect(assigned).toHaveLength(91);
-    expect(excluded).toHaveLength(23);
+  it('asigna un consejo existente a las 114 opciones', () => {
+    expect(assigned).toHaveLength(114);
+    expect(excluded).toHaveLength(0);
   });
 
   it('solo apunta a identificadores existentes del catálogo', () => {
@@ -79,13 +79,21 @@ describe('resolveFeedbackAdviceId', () => {
     expect(resolveFeedbackAdviceId('whatsapp-familiar', 'leave-paused')).toBe(
       'whatsapp-familiar:urgency',
     );
-    expect(resolveFeedbackAdviceId('tienda-iphone', 'leave-paused')).toBeNull();
-    expect(resolveFeedbackAdviceId('whatsapp-familiar', 'ack-recover')).toBeNull();
-    expect(resolveFeedbackAdviceId('tienda-iphone', 'ack-recover')).toBeNull();
+    expect(resolveFeedbackAdviceId('tienda-iphone', 'leave-paused')).toBe(
+      'tienda-iphone:leave-check',
+    );
+    expect(resolveFeedbackAdviceId('whatsapp-familiar', 'ack-recover')).toBe(
+      'whatsapp-familiar:second-ask',
+    );
+    expect(resolveFeedbackAdviceId('tienda-iphone', 'ack-recover')).toBe(
+      'tienda-iphone:store-vanish',
+    );
   });
 
   it('devuelve null para exclusiones y para claves desconocidas', () => {
-    expect(resolveFeedbackAdviceId('codigo-verificacion', 'answer-call')).toBeNull();
+    expect(resolveFeedbackAdviceId('codigo-verificacion', 'answer-call')).toBe(
+      'codigo-verificacion:unexpected-call',
+    );
     expect(resolveFeedbackAdviceId('whatsapp-familiar', 'option-inventada')).toBeNull();
     expect(resolveFeedbackAdviceId('escenario-inventado', 'send-200')).toBeNull();
   });

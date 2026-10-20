@@ -27,11 +27,13 @@ describe('experiencia de narración A–E', () => {
   });
 
   it('el control de voz solo existe si hay consejo asociado', () => {
-    expect(resolveFeedbackAdviceId('whatsapp-familiar', 'open-thread')).toBeNull();
+    expect(resolveFeedbackAdviceId('whatsapp-familiar', 'open-thread')).toBe(
+      'whatsapp-familiar:urgency',
+    );
     expect(resolveFeedbackAdviceId('whatsapp-familiar', 'send-200')).toBe(
       'whatsapp-familiar:emotional-pressure',
     );
-    expect(resolveFeedbackAdviceId('tienda-iphone', 'open-search')).toBeNull();
+    expect(resolveFeedbackAdviceId('tienda-iphone', 'open-search')).toBe('tienda-iphone:low-price');
     expect(resolveFeedbackAdviceId('tienda-iphone', 'open-lumina')).toBe('tienda-iphone:low-price');
     const ui = readFileSync(
       resolve(process.cwd(), 'src/features/simulation/EducationalAdvice.tsx'),

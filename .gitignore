@@ -36,3 +36,5 @@ Thumbs.db
 
 # Convex local state. convex/_generated/ IS committed (required for typecheck and build).
 .convex/
+.vercel
+.env*
